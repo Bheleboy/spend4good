@@ -1,5 +1,5 @@
 import { Link, useLocation } from '@tanstack/react-router'
-import { LayoutDashboard, FolderKanban, FileText, Users, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, FileText, Users, Settings, ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 const navItems: Array<{ to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }> = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/projects', label: 'Projects', icon: FolderKanban },
+  { to: '/beneficiaries', label: 'Beneficiaries', icon: Heart },
   { to: '/documents', label: 'Documents', icon: FileText },
   { to: '/users', label: 'Users', icon: Users, adminOnly: true },
   { to: '/settings', label: 'Settings', icon: Settings },
