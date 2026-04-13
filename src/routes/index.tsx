@@ -206,35 +206,38 @@ function LandingPage() {
           Simple, transparent pricing
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm text-[oklch(0.45_0_0)]">
-          Invited by a funder? You pay nothing. Self-registering? Choose the plan that fits.
+          Invited by a funder? You pay nothing. Self-registering? Start with a 7-day free trial.
         </p>
 
         <div className="mt-16 grid gap-6 md:grid-cols-3">
-          {/* Free / Invited */}
-          <div className="rounded-2xl border border-[oklch(0.15_0_0)] bg-[oklch(0.06_0_0)] p-8">
-            <div className="mb-1 text-xs font-medium uppercase tracking-widest text-[oklch(0.4_0_0)]">Invited</div>
+          {/* 7-Day Trial */}
+          <div className="relative rounded-2xl border border-[oklch(0.3_0_0)] bg-[oklch(0.08_0_0)] p-8 ring-1 ring-[oklch(0.2_0_0)]">
+            <div className="absolute -top-3 left-6 rounded-full bg-[oklch(0.6_0.19_163)] px-3 py-0.5 text-[10px] font-bold uppercase text-[oklch(0.03_0_0)]">
+              Start here
+            </div>
+            <div className="mb-1 text-xs font-medium uppercase tracking-widest text-[oklch(0.6_0_0)]">7-Day Trial</div>
             <div className="text-4xl font-bold">Free</div>
-            <p className="mt-2 text-sm text-[oklch(0.45_0_0)]">For nonprofits invited by a funder. No payment needed.</p>
+            <p className="mt-2 text-sm text-[oklch(0.45_0_0)]">Try Spend4Good risk-free for 7 days. No credit card required.</p>
             <div className="my-6 h-px bg-[oklch(0.15_0_0)]" />
             <ul className="space-y-3">
-              {['Upload documents', 'Manage team', 'View project budgets', 'WhatsApp submissions'].map((f) => (
+              {['Up to 3 projects', 'Document uploads & approvals', 'Team management', 'WhatsApp submissions', 'No reporting during trial'].map((f) => (
                 <li key={f} className="flex items-center gap-2 text-sm text-[oklch(0.6_0_0)]">
                   <CheckCircle className="h-4 w-4 shrink-0 text-[oklch(0.6_0.19_163)]" /> {f}
                 </li>
               ))}
             </ul>
-            <Link to="/onboarding" search={{ type: 'invited' }} className="mt-8 block">
-              <Button variant="outline" className="w-full border-[oklch(0.25_0_0)] bg-transparent text-[oklch(0.95_0_0)] hover:bg-[oklch(0.12_0_0)]">
-                I've been invited
+            <Link to="/onboarding" search={{ type: 'nonprofit' }} className="mt-8 block">
+              <Button className="w-full bg-[oklch(0.95_0_0)] text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)] font-semibold">
+                Start Free Trial
               </Button>
             </Link>
           </div>
 
           {/* Starter */}
-          <div className="rounded-2xl border border-[oklch(0.3_0_0)] bg-[oklch(0.08_0_0)] p-8 ring-1 ring-[oklch(0.2_0_0)]">
-            <div className="mb-1 text-xs font-medium uppercase tracking-widest text-[oklch(0.6_0_0)]">Starter</div>
+          <div className="rounded-2xl border border-[oklch(0.15_0_0)] bg-[oklch(0.06_0_0)] p-8">
+            <div className="mb-1 text-xs font-medium uppercase tracking-widest text-[oklch(0.4_0_0)]">Starter</div>
             <div className="text-4xl font-bold">R499<span className="text-lg font-normal text-[oklch(0.4_0_0)]">/mo</span></div>
-            <p className="mt-2 text-sm text-[oklch(0.45_0_0)]">For small nonprofits and community projects self-registering.</p>
+            <p className="mt-2 text-sm text-[oklch(0.45_0_0)]">For small nonprofits and community projects.</p>
             <div className="my-6 h-px bg-[oklch(0.15_0_0)]" />
             <ul className="space-y-3">
               {['Up to 5 projects', 'Up to 10 team members', 'Document approvals', 'Basic reports', 'Email support'].map((f) => (
@@ -244,7 +247,7 @@ function LandingPage() {
               ))}
             </ul>
             <Link to="/onboarding" search={{ type: 'nonprofit' }} className="mt-8 block">
-              <Button className="w-full bg-[oklch(0.95_0_0)] text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)] font-semibold">
+              <Button variant="outline" className="w-full border-[oklch(0.25_0_0)] bg-transparent text-[oklch(0.95_0_0)] hover:bg-[oklch(0.12_0_0)]">
                 Get Started
               </Button>
             </Link>
