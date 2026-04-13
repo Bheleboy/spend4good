@@ -3,7 +3,9 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, CheckCircle } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, CheckCircle, Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 
 type OnboardingType = 'funder' | 'nonprofit' | 'invited'
 
@@ -24,34 +26,90 @@ function OnboardingPage() {
   const { type } = Route.useSearch()
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState(0)
   const [form, setForm] = useState({
     orgName: '',
     fullName: '',
     email: '',
     phone: '+27',
     inviteCode: '',
+    country: 'ZA',
   })
 
   const totalSteps = type === 'invited' ? 2 : 3
   const label = type === 'funder' ? 'Funder' : type === 'nonprofit' ? 'Non-Profit' : 'Invited Non-Profit'
-  const icon = type === 'funder' ? Building2 : Heart
-  const Icon = icon
+  const Icon = type === 'funder' ? Building2 : Heart
 
   const update = (field: string, value: string) => setForm((p) => ({ ...p, [field]: value }))
 
   const canNext = () => {
     if (step === 1) {
       if (type === 'invited') return form.inviteCode.length > 3
-      return form.orgName.length > 1
+      return form.orgName.length > 1 && form.email.length > 3
     }
-    if (step === 2) return form.fullName.length > 1 && form.phone.length > 7
+    if (step === 2) return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3
     return true
   }
 
-  const handleComplete = () => {
-    // In production, this would call an API to register
-    // For now, redirect to login for OTP verification
-    navigate({ to: '/login' })
+  const handleComplete = async () => {
+    setLoading(true)
+    try {
+      // Determine role based on type
+      const role = type === 'funder' ? 'funder' : 'admin'
+      const subscriptionTier = type === 'invited' ? 'invited' : 'trial'
+      const slug = form.orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+
+      if (type === 'invited') {
+        // For invited users, just redirect to login — the funder already set up the org
+        toast.success('Invite verified! Please verify your phone number.')
+        navigate({ to: '/login' })
+        return
+      }
+
+      // Create organization
+      const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: form.orgName,
+          slug: slug || 'org-' + Date.now(),
+          country: form.country,
+          onboarding_status: 'pending',
+          subscription_tier: subscriptionTier,
+        })
+        .select()
+        .single()
+
+      if (orgError) {
+        toast.error('Failed to create organization: ' + orgError.message)
+        setLoading(false)
+        return
+      }
+
+      // Create user as admin (nonprofit) or funder
+      const { error: userError } = await supabase
+        .from('users')
+        .insert({
+          phone_number: form.phone,
+          org_id: org.id,
+          role: role,
+          full_name: form.fullName,
+          email: form.email,
+          is_active: true,
+        })
+
+      if (userError) {
+        toast.error('Failed to create user: ' + userError.message)
+        setLoading(false)
+        return
+      }
+
+      toast.success('Account created! Now verify your phone number.')
+      navigate({ to: '/login' })
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    }
+    setLoading(false)
   }
 
   return (
@@ -93,7 +151,7 @@ function OnboardingPage() {
             ))}
           </div>
 
-          {/* Step 1 */}
+          {/* Step 1 - Org details (funder/nonprofit) */}
           {step === 1 && type !== 'invited' && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Tell us about your organization</h2>
@@ -114,6 +172,7 @@ function OnboardingPage() {
                     value={form.email}
                     onChange={(e) => update('email', e.target.value)}
                     placeholder="admin@organization.co.za"
+                    type="email"
                     className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
                   />
                 </div>
@@ -121,7 +180,7 @@ function OnboardingPage() {
               {type === 'nonprofit' && (
                 <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
                   <p className="text-xs text-[oklch(0.45_0_0)]">
-                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — you'll select a plan after setting up your profile. If you were invited by a funder,{' '}
+                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — you'll start with a 7-day free trial. If you were invited by a funder,{' '}
                     <Link to="/onboarding" search={{ type: 'invited' }} className="underline text-[oklch(0.7_0_0)]">
                       click here instead
                     </Link>.
@@ -131,6 +190,7 @@ function OnboardingPage() {
             </div>
           )}
 
+          {/* Step 1 - Invite code */}
           {step === 1 && type === 'invited' && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Enter your invite code</h2>
@@ -155,10 +215,13 @@ function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2 - Contact details */}
+          {/* Step 2 - Personal details with email + phone */}
           {step === 2 && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Your details</h2>
+              <p className="text-xs text-[oklch(0.45_0_0)]">
+                Your phone number will be linked to WhatsApp for document submissions.
+              </p>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Full Name</label>
                 <div className="relative">
@@ -171,8 +234,23 @@ function OnboardingPage() {
                   />
                 </div>
               </div>
+              {type === 'invited' && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
+                    <Input
+                      value={form.email}
+                      onChange={(e) => update('email', e.target.value)}
+                      placeholder="you@organization.co.za"
+                      type="email"
+                      className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                    />
+                  </div>
+                </div>
+              )}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number</label>
+                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
                   <Input
@@ -197,29 +275,57 @@ function OnboardingPage() {
                 {type === 'nonprofit' ? (
                   <>
                     <PlanCard
+                      name="7-Day Free Trial"
+                      price="Free"
+                      desc="Try Spend4Good risk-free. No reporting during trial."
+                      features={['Up to 3 projects', '5 team members', 'Document uploads', 'No reports during trial']}
+                      selected={selectedPlan === 0}
+                      onSelect={() => setSelectedPlan(0)}
+                      highlight
+                    />
+                    <PlanCard
                       name="Starter"
                       price="R499/mo"
+                      desc="For small nonprofits and community projects."
                       features={['Up to 5 projects', '10 team members', 'Basic reports']}
-                      selected
+                      selected={selectedPlan === 1}
+                      onSelect={() => setSelectedPlan(1)}
                     />
                     <PlanCard
                       name="Growth"
                       price="R999/mo"
+                      desc="For growing organizations."
                       features={['Up to 20 projects', 'Unlimited team', 'Advanced reports']}
+                      selected={selectedPlan === 2}
+                      onSelect={() => setSelectedPlan(2)}
                     />
                   </>
                 ) : (
                   <>
                     <PlanCard
+                      name="7-Day Free Trial"
+                      price="Free"
+                      desc="Try Spend4Good risk-free. No reporting during trial."
+                      features={['Up to 2 projects', 'Invite 2 nonprofits', 'No reports during trial']}
+                      selected={selectedPlan === 0}
+                      onSelect={() => setSelectedPlan(0)}
+                      highlight
+                    />
+                    <PlanCard
                       name="Funder"
                       price="R1,499/mo"
-                      features={['Unlimited projects', 'Invite nonprofits', 'Full reports & exports']}
-                      selected
+                      desc="For funders managing multiple nonprofits."
+                      features={['Unlimited projects', 'Invite unlimited nonprofits', 'Full reports & exports']}
+                      selected={selectedPlan === 1}
+                      onSelect={() => setSelectedPlan(1)}
                     />
                     <PlanCard
                       name="Enterprise"
                       price="Custom"
+                      desc="For large funders and government."
                       features={['Custom integrations', 'Dedicated support', 'SLA']}
+                      selected={selectedPlan === 2}
+                      onSelect={() => setSelectedPlan(2)}
                     />
                   </>
                 )}
@@ -254,10 +360,14 @@ function OnboardingPage() {
             ) : (
               <Button
                 onClick={handleComplete}
-                disabled={!canNext()}
+                disabled={!canNext() || loading}
                 className="bg-[oklch(0.95_0_0)] text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)] font-semibold px-6"
               >
-                Verify Phone & Continue <ArrowRight className="ml-1 h-4 w-4" />
+                {loading ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...</>
+                ) : (
+                  <>Verify Phone & Continue <ArrowRight className="ml-1 h-4 w-4" /></>
+                )}
               </Button>
             )}
           </div>
@@ -267,18 +377,31 @@ function OnboardingPage() {
   )
 }
 
-function PlanCard({ name, price, features, selected }: { name: string; price: string; features: string[]; selected?: boolean }) {
+function PlanCard({ name, price, desc, features, selected, onSelect, highlight }: {
+  name: string; price: string; desc: string; features: string[]; selected?: boolean; onSelect?: () => void; highlight?: boolean
+}) {
   return (
-    <div className={`cursor-pointer rounded-xl border p-5 transition-colors ${selected ? 'border-[oklch(0.4_0_0)] bg-[oklch(0.1_0_0)]' : 'border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] hover:border-[oklch(0.25_0_0)]'}`}>
+    <div
+      onClick={onSelect}
+      className={`cursor-pointer rounded-xl border p-5 transition-colors ${selected ? 'border-[oklch(0.4_0_0)] bg-[oklch(0.1_0_0)]' : 'border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] hover:border-[oklch(0.25_0_0)]'}`}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold">{name}</h3>
-          <p className="text-sm text-[oklch(0.5_0_0)]">{price}</p>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold">{name}</h3>
+            {highlight && (
+              <span className="rounded-full bg-[oklch(0.6_0.19_163)] px-2 py-0.5 text-[10px] font-bold uppercase text-[oklch(0.03_0_0)]">
+                Recommended
+              </span>
+            )}
+          </div>
+          <p className="text-sm font-medium text-[oklch(0.6_0_0)]">{price}</p>
         </div>
-        <div className={`h-5 w-5 rounded-full border-2 ${selected ? 'border-[oklch(0.95_0_0)] bg-[oklch(0.95_0_0)]' : 'border-[oklch(0.3_0_0)]'}`}>
+        <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${selected ? 'border-[oklch(0.95_0_0)] bg-[oklch(0.95_0_0)]' : 'border-[oklch(0.3_0_0)]'}`}>
           {selected && <CheckCircle className="h-full w-full text-[oklch(0.03_0_0)]" />}
         </div>
       </div>
+      <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">{desc}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         {features.map((f) => (
           <span key={f} className="rounded-full bg-[oklch(0.12_0_0)] px-2.5 py-0.5 text-xs text-[oklch(0.5_0_0)]">{f}</span>
