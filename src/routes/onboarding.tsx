@@ -46,7 +46,7 @@ function OnboardingPage() {
   const canNext = () => {
     if (step === 1) {
       if (type === 'invited') return form.inviteCode.length > 3
-      return form.orgName.length > 1 && form.email.length > 3
+      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7
     }
     if (step === 2) return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3
     return true
