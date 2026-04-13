@@ -290,55 +290,31 @@ function OnboardingPage() {
                     <PlanCard
                       name="7-Day Free Trial"
                       price="Free"
-                      desc="Try Spend4Good risk-free. No reporting during trial."
-                      features={['Up to 3 projects', '5 team members', 'Document uploads', 'No reports during trial']}
+                      desc="Try everything risk-free. No reporting during trial."
+                      features={['All features included', 'Unlimited projects', 'Add beneficiaries', 'Upload receipts & photos', 'No reports during trial']}
                       selected={selectedPlan === 0}
                       onSelect={() => setSelectedPlan(0)}
                       highlight
                     />
                     <PlanCard
-                      name="Starter"
+                      name="Non-Profit"
                       price="R499/mo"
-                      desc="For small nonprofits and community projects."
-                      features={['Up to 5 projects', '10 team members', 'Basic reports']}
+                      desc="Full access for non-profit organizations."
+                      features={['Unlimited projects & beneficiaries', 'Unlimited team members', 'Geolocated photo uploads', 'Full reporting & exports', 'WhatsApp agent integration']}
                       selected={selectedPlan === 1}
                       onSelect={() => setSelectedPlan(1)}
-                    />
-                    <PlanCard
-                      name="Growth"
-                      price="R999/mo"
-                      desc="For growing organizations."
-                      features={['Up to 20 projects', 'Unlimited team', 'Advanced reports']}
-                      selected={selectedPlan === 2}
-                      onSelect={() => setSelectedPlan(2)}
                     />
                   </>
                 ) : (
                   <>
                     <PlanCard
-                      name="7-Day Free Trial"
-                      price="Free"
-                      desc="Try Spend4Good risk-free. No reporting during trial."
-                      features={['Up to 2 projects', 'Invite 2 nonprofits', 'No reports during trial']}
+                      name="Funder"
+                      price="R1,499/mo"
+                      desc="Full access for funders managing nonprofits."
+                      features={['Unlimited projects & nonprofits', 'Invite & manage nonprofits', 'Full reporting & exports', 'Beneficiary tracking', 'WhatsApp agent integration']}
                       selected={selectedPlan === 0}
                       onSelect={() => setSelectedPlan(0)}
                       highlight
-                    />
-                    <PlanCard
-                      name="Funder"
-                      price="R1,499/mo"
-                      desc="For funders managing multiple nonprofits."
-                      features={['Unlimited projects', 'Invite unlimited nonprofits', 'Full reports & exports']}
-                      selected={selectedPlan === 1}
-                      onSelect={() => setSelectedPlan(1)}
-                    />
-                    <PlanCard
-                      name="Enterprise"
-                      price="Custom"
-                      desc="For large funders and government."
-                      features={['Custom integrations', 'Dedicated support', 'SLA']}
-                      selected={selectedPlan === 2}
-                      onSelect={() => setSelectedPlan(2)}
                     />
                   </>
                 )}
