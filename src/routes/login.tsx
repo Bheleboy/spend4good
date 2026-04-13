@@ -161,13 +161,10 @@ function LoginPage() {
             </div>
           )}
 
-          {/* Bottom link */}
+          {/* Bottom note */}
           <div className="mt-8 border-t border-[oklch(0.12_0_0)] pt-6 text-center">
             <p className="text-xs text-[oklch(0.4_0_0)]">
-              Don't have an account?{' '}
-              <Link to="/onboarding" search={{ type: 'nonprofit' }} className="text-[oklch(0.7_0_0)] underline underline-offset-4 hover:text-[oklch(0.95_0_0)]">
-                Get started
-              </Link>
+              Verify your phone number to access your dashboard.
             </p>
           </div>
         </div>
