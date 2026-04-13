@@ -1,5 +1,5 @@
 import { Link, useLocation } from '@tanstack/react-router'
-import { LayoutDashboard, FolderKanban, FileText, Users, Settings, ChevronLeft, ChevronRight, DollarSign } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, FileText, Users, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
@@ -19,15 +19,17 @@ export function AppSidebar() {
 
   return (
     <aside className={cn(
-      'flex flex-col border-r border-border bg-sidebar transition-all duration-200',
-      collapsed ? 'w-16' : 'w-60'
+      'flex flex-col border-r border-border bg-card transition-all duration-200',
+      collapsed ? 'w-[68px]' : 'w-60'
     )}>
-      <div className="flex items-center gap-2 border-b border-border px-4 py-4">
-        <DollarSign className="h-7 w-7 shrink-0 text-primary" />
-        {!collapsed && <span className="text-lg font-bold text-foreground">Spend4Good</span>}
+      <div className="flex items-center gap-2.5 px-4 py-5">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-foreground">
+          <span className="text-sm font-black text-background">S4</span>
+        </div>
+        {!collapsed && <span className="text-base font-bold tracking-tight text-foreground">Spend4Good</span>}
       </div>
 
-      <nav className="flex-1 space-y-1 px-2 py-4">
+      <nav className="flex-1 space-y-0.5 px-3 py-2">
         {navItems.map((item) => {
           if (item.adminOnly && user?.role !== 'admin') return null
           const active = location.pathname.startsWith(item.to)
@@ -36,25 +38,27 @@ export function AppSidebar() {
               key={item.to}
               to={item.to as any}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
                 active
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-accent hover:text-foreground'
               )}
             >
-              <item.icon className="h-5 w-5 shrink-0" />
+              <item.icon className={cn('h-[18px] w-[18px] shrink-0', active && 'text-primary')} />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           )
         })}
       </nav>
 
-      <button
-        onClick={() => setCollapsed(c => !c)}
-        className="flex items-center justify-center border-t border-border p-3 text-muted-foreground hover:text-foreground"
-      >
-        {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-      </button>
+      <div className="border-t border-border p-3">
+        <button
+          onClick={() => setCollapsed(c => !c)}
+          className="flex w-full items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </button>
+      </div>
     </aside>
   )
 }
