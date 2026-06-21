@@ -38,6 +38,11 @@ export const Route = createRootRoute({
       { property: "og:title", content: "Spend4Good Admin" },
       { property: "og:description", content: "Nonprofit spend tracking admin dashboard" },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Spend4Good Admin" },
+      { name: "twitter:description", content: "Nonprofit spend tracking admin dashboard" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/05d438ea-959e-4017-8f31-513878986870/id-preview-333c704a--e9e71832-7fb4-4121-a14f-c02d1db47923.lovable.app-1776093094231.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/05d438ea-959e-4017-8f31-513878986870/id-preview-333c704a--e9e71832-7fb4-4121-a14f-c02d1db47923.lovable.app-1776093094231.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
