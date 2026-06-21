@@ -286,35 +286,33 @@ function OnboardingPage() {
               <h2 className="text-lg font-semibold">Choose your plan</h2>
               <div className="space-y-3">
                 {type === 'nonprofit' ? (
-                  <>
-                    <PlanCard
-                      name="7-Day Free Trial"
-                      price="Free"
-                      desc="Try everything risk-free. No reporting during trial."
-                      features={['All features included', 'Unlimited projects', 'Add beneficiaries', 'Upload receipts & photos', 'No reports during trial']}
-                      selected={selectedPlan === 0}
-                      onSelect={() => setSelectedPlan(0)}
-                      highlight
-                    />
-                    <PlanCard
-                      name="Non-Profit"
-                      price="R499/mo"
-                      desc="Full access for non-profit organizations."
-                      features={['Unlimited projects & beneficiaries', 'Unlimited team members', 'Geolocated photo uploads', 'Full reporting & exports', 'WhatsApp agent integration']}
-                      selected={selectedPlan === 1}
-                      onSelect={() => setSelectedPlan(1)}
-                    />
-                  </>
+                  <PlanCard
+                    name="Nonprofit"
+                    price="$100/year"
+                    desc="Self-registered nonprofits. Up to 4 internal projects."
+                    features={['Up to 4 active projects', 'Unlimited team members', 'Beneficiaries & geolocated photos', 'WhatsApp uploads', 'Full reporting']}
+                    selected={selectedPlan === 0}
+                    onSelect={() => setSelectedPlan(0)}
+                    highlight
+                  />
                 ) : (
                   <>
                     <PlanCard
-                      name="Funder"
-                      price="R1,499/mo"
-                      desc="Full access for funders managing nonprofits."
-                      features={['Unlimited projects & nonprofits', 'Invite & manage nonprofits', 'Full reporting & exports', 'Beneficiary tracking', 'WhatsApp agent integration']}
+                      name="Funder Starter"
+                      price="$800/year"
+                      desc="Up to 10 nonprofits, 4 projects per funded nonprofit."
+                      features={['Up to 10 nonprofits', '4 projects per nonprofit', 'Invite & manage nonprofits', 'Portfolio dashboard', 'WhatsApp reporting']}
                       selected={selectedPlan === 0}
                       onSelect={() => setSelectedPlan(0)}
                       highlight
+                    />
+                    <PlanCard
+                      name="Funder Premium"
+                      price="$2,000/year"
+                      desc="Unlimited nonprofits and projects."
+                      features={['Unlimited nonprofits', 'Configurable project limits', 'Advanced reporting & exports', 'Priority support']}
+                      selected={selectedPlan === 1}
+                      onSelect={() => setSelectedPlan(1)}
                     />
                   </>
                 )}
