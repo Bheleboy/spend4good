@@ -3,8 +3,9 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, CheckCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, Lock, CheckCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { signUpWithPassword } from '@/lib/auth'
 import { toast } from 'sonner'
 
 type OnboardingType = 'funder' | 'nonprofit' | 'invited'
@@ -32,6 +33,7 @@ function OnboardingPage() {
     orgName: '',
     fullName: '',
     email: '',
+    password: '',
     phone: '+27',
     inviteCode: '',
     country: 'ZA',
@@ -48,26 +50,40 @@ function OnboardingPage() {
       if (type === 'invited') return form.inviteCode.length > 3
       return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7
     }
-    if (step === 2) return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3
+    if (step === 2) return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
     return true
+  }
+
+  const planFor = (): 'nonprofit_self' | 'funder_starter' | 'funder_premium' | 'invited_free' => {
+    if (type === 'invited') return 'invited_free'
+    if (type === 'nonprofit') return 'nonprofit_self'
+    return selectedPlan === 1 ? 'funder_premium' : 'funder_starter'
   }
 
   const handleComplete = async () => {
     setLoading(true)
     try {
-      // Determine role based on type
-      const role = type === 'funder' ? 'funder' : 'admin'
-      const subscriptionTier = type === 'invited' ? 'invited' : 'trial'
-      const slug = form.orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-
       if (type === 'invited') {
-        // For invited users, just redirect to login — the funder already set up the org
-        toast.success('Invite verified! Please verify your phone number.')
+        toast.success('Invite verified! Please complete sign in.')
         navigate({ to: '/login' })
         return
       }
 
-      // Create organization
+      const role: 'admin' | 'funder_admin' = type === 'funder' ? 'funder_admin' : 'admin'
+      const orgType: 'funder' | 'nonprofit' = type === 'funder' ? 'funder' : 'nonprofit'
+      const plan = planFor()
+      const slug = form.orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+
+      // 1. Create Supabase auth user
+      const { data: authData, error: authError } = await signUpWithPassword(form.email, form.password, form.fullName)
+      if (authError || !authData.user) {
+        toast.error(authError?.message || 'Failed to create account')
+        setLoading(false)
+        return
+      }
+      const authUserId = authData.user.id
+
+      // 2. Create organization
       const { data: org, error: orgError } = await supabase
         .from('organizations')
         .insert({
@@ -75,7 +91,9 @@ function OnboardingPage() {
           slug: slug || 'org-' + Date.now(),
           country: form.country,
           onboarding_status: 'pending',
-          subscription_tier: subscriptionTier,
+          subscription_tier: plan,
+          type: orgType,
+          subscription_plan: plan,
         })
         .select()
         .single()
@@ -86,31 +104,39 @@ function OnboardingPage() {
         return
       }
 
-      // Create user as admin (nonprofit) or funder
-      const { error: userError } = await supabase
-        .from('users')
-        .insert({
-          phone_number: form.phone,
-          org_id: org.id,
-          role: role,
-          full_name: form.fullName,
-          email: form.email,
-          is_active: true,
-        })
+      // 3. Create public.users row with id matching auth user
+      const { error: userError } = await supabase.from('users').insert({
+        id: authUserId,
+        phone_number: form.phone,
+        whatsapp_number: form.phone,
+        org_id: org.id,
+        role,
+        full_name: form.fullName,
+        email: form.email,
+        is_active: true,
+      })
 
       if (userError) {
-        toast.error('Failed to create user: ' + userError.message)
+        toast.error('Failed to create profile: ' + userError.message)
         setLoading(false)
         return
       }
 
-      toast.success('Account created! Now verify your phone number.')
+      // 4. Assign role
+      await supabase.from('user_roles').insert({
+        user_id: authUserId,
+        role,
+        org_id: org.id,
+      })
+
+      toast.success('Account created! Check your email to confirm, then sign in.')
       navigate({ to: '/login' })
     } catch {
       toast.error('Something went wrong. Please try again.')
     }
     setLoading(false)
   }
+
 
   return (
     <div className="flex min-h-screen flex-col bg-[oklch(0.03_0_0)] text-[oklch(0.95_0_0)]">
