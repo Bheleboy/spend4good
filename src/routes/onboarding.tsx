@@ -393,7 +393,7 @@ function OnboardingPage() {
                 {loading ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...</>
                 ) : (
-                  <>Verify Phone & Continue <ArrowRight className="ml-1 h-4 w-4" /></>
+                  <>Create Account <ArrowRight className="ml-1 h-4 w-4" /></>
                 )}
               </Button>
             )}
