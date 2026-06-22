@@ -137,7 +137,7 @@ function DocumentsPage() {
                 <TableCell>{d.vendor_name || '—'}</TableCell>
                 <TableCell><Badge className={statusColors[d.status] || ''}>{d.status}</Badge></TableCell>
                 <TableCell>
-                  {can('approve_doc') && d.status === 'pending' && (
+                  {can('approve_doc_l1') && d.status === 'pending' && (
                     <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                       <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={() => handleApprove(d.id)}><CheckCircle className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => { setSelectedDoc(d); setRejectReason('') }}><XCircle className="h-4 w-4" /></Button>
@@ -171,7 +171,7 @@ function DocumentsPage() {
                 </div>
               </div>
 
-              {can('approve_doc') && selectedDoc.status === 'pending' && (
+              {can('approve_doc_l1') && selectedDoc.status === 'pending' && (
                 <div className="space-y-3 border-t border-border pt-3">
                   <textarea
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"

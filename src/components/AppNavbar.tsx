@@ -59,7 +59,7 @@ export function AppNavbar() {
               <div className="px-3 py-2.5">
                 <p className="text-sm font-medium text-foreground">{user?.full_name}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{user?.email || user?.phone_number}</p>
-                <Badge className={`mt-2 text-[10px] ${roleColors[user?.role || 'field_agent']}`}>
+                <Badge className={`mt-2 text-[10px] ${roleColors[user?.role || 'agent']}`}>
                   {user?.role?.replace('_', ' ')}
                 </Badge>
               </div>
