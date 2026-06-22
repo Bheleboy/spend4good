@@ -300,9 +300,23 @@ function OnboardingPage() {
                   />
                 </div>
               </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
+                  <Input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => update('password', e.target.value)}
+                    placeholder="At least 8 characters"
+                    className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                  />
+                </div>
+              </div>
               <p className="text-xs text-[oklch(0.4_0_0)]">
-                We'll send an OTP to verify your phone number on the next step.
+                You'll confirm your email and verify your WhatsApp number after sign-in.
               </p>
+
             </div>
           )}
 
