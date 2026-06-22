@@ -1,56 +1,92 @@
+import { supabase } from './supabase'
 import type { UserRole } from './permissions'
 
 export interface AuthUser {
   id: string
-  phone_number: string
-  org_id: string
+  email: string | null
+  phone_number: string | null
+  whatsapp_number?: string | null
+  whatsapp_verified?: boolean
+  org_id: string | null
   role: UserRole
   full_name: string
-  email: string | null
   is_active: boolean
   organization?: {
     id: string
     name: string
     slug: string
     subscription_tier: string
+    type?: string | null
+    subscription_plan?: string | null
   }
 }
 
-const AUTH_KEY = 'spend4good_user'
+/**
+ * Loads the profile row from public.users for the current auth user.
+ * Convention: public.users.id === auth.users.id.
+ */
+export async function loadProfile(authUserId: string, fallbackEmail?: string | null): Promise<AuthUser | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*, organizations(*)')
+    .eq('id', authUserId)
+    .maybeSingle()
 
-export function getStoredUser(): AuthUser | null {
-  try {
-    const raw = localStorage.getItem(AUTH_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
+  if (error || !data) return null
+
+  // Fetch role from user_roles (preferred) — fall back to legacy users.role column
+  const { data: roleRow } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', authUserId)
+    .limit(1)
+    .maybeSingle()
+
+  return {
+    id: data.id,
+    email: data.email ?? fallbackEmail ?? null,
+    phone_number: data.phone_number ?? null,
+    whatsapp_number: data.whatsapp_number ?? null,
+    whatsapp_verified: data.whatsapp_verified ?? false,
+    org_id: data.org_id,
+    role: (roleRow?.role ?? data.role ?? 'agent') as UserRole,
+    full_name: data.full_name ?? '',
+    is_active: data.is_active ?? true,
+    organization: data.organizations
+      ? {
+          id: data.organizations.id,
+          name: data.organizations.name,
+          slug: data.organizations.slug,
+          subscription_tier: data.organizations.subscription_tier,
+          type: data.organizations.type ?? null,
+          subscription_plan: data.organizations.subscription_plan ?? null,
+        }
+      : undefined,
   }
 }
 
-export function storeUser(user: AuthUser): void {
-  localStorage.setItem(AUTH_KEY, JSON.stringify(user))
+export async function signInWithPassword(email: string, password: string) {
+  return supabase.auth.signInWithPassword({ email, password })
 }
 
-export function clearUser(): void {
-  localStorage.removeItem(AUTH_KEY)
-}
-
-const API_BASE = 'http://localhost:3000/api'
-
-export async function requestOtp(phone: string): Promise<{ success: boolean; message?: string }> {
-  const res = await fetch(`${API_BASE}/auth/request-otp`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone_number: phone }),
+export async function signUpWithPassword(email: string, password: string, fullName: string) {
+  return supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
+      data: { full_name: fullName },
+    },
   })
-  return res.json()
 }
 
-export async function verifyOtp(phone: string, otp: string): Promise<{ success: boolean; user?: AuthUser; message?: string }> {
-  const res = await fetch(`${API_BASE}/auth/verify-otp`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone_number: phone, otp }),
+export async function signInWithGoogle() {
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${window.location.origin}/auth/callback` },
   })
-  return res.json()
+}
+
+export async function signOut() {
+  await supabase.auth.signOut()
 }
