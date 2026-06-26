@@ -14,13 +14,20 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AppWhatsappRouteImport } from './routes/_app.whatsapp'
 import { Route as AppUsersRouteImport } from './routes/_app.users'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppProjectsRouteImport } from './routes/_app.projects'
+import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppDocumentsRouteImport } from './routes/_app.documents'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppBeneficiariesRouteImport } from './routes/_app.beneficiaries'
+import { Route as AppComplianceIndexRouteImport } from './routes/_app.compliance.index'
 import { Route as AppProjectsIdRouteImport } from './routes/_app.projects.$id'
+import { Route as AppComplianceVaultRouteImport } from './routes/_app.compliance.vault'
+import { Route as AppComplianceScoreRouteImport } from './routes/_app.compliance.score'
+import { Route as AppComplianceReportsRouteImport } from './routes/_app.compliance.reports'
+import { Route as AppComplianceCalendarRouteImport } from './routes/_app.compliance.calendar'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -46,6 +53,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppWhatsappRoute = AppWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppUsersRoute = AppUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -59,6 +71,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
 const AppProjectsRoute = AppProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExpensesRoute = AppExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDocumentsRoute = AppDocumentsRouteImport.update({
@@ -76,10 +93,35 @@ const AppBeneficiariesRoute = AppBeneficiariesRouteImport.update({
   path: '/beneficiaries',
   getParentRoute: () => AppRoute,
 } as any)
+const AppComplianceIndexRoute = AppComplianceIndexRouteImport.update({
+  id: '/compliance/',
+  path: '/compliance/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProjectsIdRoute = AppProjectsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AppProjectsRoute,
+} as any)
+const AppComplianceVaultRoute = AppComplianceVaultRouteImport.update({
+  id: '/compliance/vault',
+  path: '/compliance/vault',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppComplianceScoreRoute = AppComplianceScoreRouteImport.update({
+  id: '/compliance/score',
+  path: '/compliance/score',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppComplianceReportsRoute = AppComplianceReportsRouteImport.update({
+  id: '/compliance/reports',
+  path: '/compliance/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppComplianceCalendarRoute = AppComplianceCalendarRouteImport.update({
+  id: '/compliance/calendar',
+  path: '/compliance/calendar',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -89,11 +131,18 @@ export interface FileRoutesByFullPath {
   '/beneficiaries': typeof AppBeneficiariesRoute
   '/dashboard': typeof AppDashboardRoute
   '/documents': typeof AppDocumentsRoute
+  '/expenses': typeof AppExpensesRoute
   '/projects': typeof AppProjectsRouteWithChildren
   '/settings': typeof AppSettingsRoute
   '/users': typeof AppUsersRoute
+  '/whatsapp': typeof AppWhatsappRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/compliance/calendar': typeof AppComplianceCalendarRoute
+  '/compliance/reports': typeof AppComplianceReportsRoute
+  '/compliance/score': typeof AppComplianceScoreRoute
+  '/compliance/vault': typeof AppComplianceVaultRoute
   '/projects/$id': typeof AppProjectsIdRoute
+  '/compliance/': typeof AppComplianceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,11 +151,18 @@ export interface FileRoutesByTo {
   '/beneficiaries': typeof AppBeneficiariesRoute
   '/dashboard': typeof AppDashboardRoute
   '/documents': typeof AppDocumentsRoute
+  '/expenses': typeof AppExpensesRoute
   '/projects': typeof AppProjectsRouteWithChildren
   '/settings': typeof AppSettingsRoute
   '/users': typeof AppUsersRoute
+  '/whatsapp': typeof AppWhatsappRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/compliance/calendar': typeof AppComplianceCalendarRoute
+  '/compliance/reports': typeof AppComplianceReportsRoute
+  '/compliance/score': typeof AppComplianceScoreRoute
+  '/compliance/vault': typeof AppComplianceVaultRoute
   '/projects/$id': typeof AppProjectsIdRoute
+  '/compliance': typeof AppComplianceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -117,11 +173,18 @@ export interface FileRoutesById {
   '/_app/beneficiaries': typeof AppBeneficiariesRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/documents': typeof AppDocumentsRoute
+  '/_app/expenses': typeof AppExpensesRoute
   '/_app/projects': typeof AppProjectsRouteWithChildren
   '/_app/settings': typeof AppSettingsRoute
   '/_app/users': typeof AppUsersRoute
+  '/_app/whatsapp': typeof AppWhatsappRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/_app/compliance/calendar': typeof AppComplianceCalendarRoute
+  '/_app/compliance/reports': typeof AppComplianceReportsRoute
+  '/_app/compliance/score': typeof AppComplianceScoreRoute
+  '/_app/compliance/vault': typeof AppComplianceVaultRoute
   '/_app/projects/$id': typeof AppProjectsIdRoute
+  '/_app/compliance/': typeof AppComplianceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -132,11 +195,18 @@ export interface FileRouteTypes {
     | '/beneficiaries'
     | '/dashboard'
     | '/documents'
+    | '/expenses'
     | '/projects'
     | '/settings'
     | '/users'
+    | '/whatsapp'
     | '/auth/callback'
+    | '/compliance/calendar'
+    | '/compliance/reports'
+    | '/compliance/score'
+    | '/compliance/vault'
     | '/projects/$id'
+    | '/compliance/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -145,11 +215,18 @@ export interface FileRouteTypes {
     | '/beneficiaries'
     | '/dashboard'
     | '/documents'
+    | '/expenses'
     | '/projects'
     | '/settings'
     | '/users'
+    | '/whatsapp'
     | '/auth/callback'
+    | '/compliance/calendar'
+    | '/compliance/reports'
+    | '/compliance/score'
+    | '/compliance/vault'
     | '/projects/$id'
+    | '/compliance'
   id:
     | '__root__'
     | '/'
@@ -159,11 +236,18 @@ export interface FileRouteTypes {
     | '/_app/beneficiaries'
     | '/_app/dashboard'
     | '/_app/documents'
+    | '/_app/expenses'
     | '/_app/projects'
     | '/_app/settings'
     | '/_app/users'
+    | '/_app/whatsapp'
     | '/auth/callback'
+    | '/_app/compliance/calendar'
+    | '/_app/compliance/reports'
+    | '/_app/compliance/score'
+    | '/_app/compliance/vault'
     | '/_app/projects/$id'
+    | '/_app/compliance/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -211,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/whatsapp': {
+      id: '/_app/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/whatsapp'
+      preLoaderRoute: typeof AppWhatsappRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/users': {
       id: '/_app/users'
       path: '/users'
@@ -230,6 +321,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof AppProjectsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/expenses': {
+      id: '/_app/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof AppExpensesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/documents': {
@@ -253,12 +351,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBeneficiariesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/compliance/': {
+      id: '/_app/compliance/'
+      path: '/compliance'
+      fullPath: '/compliance/'
+      preLoaderRoute: typeof AppComplianceIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/projects/$id': {
       id: '/_app/projects/$id'
       path: '/$id'
       fullPath: '/projects/$id'
       preLoaderRoute: typeof AppProjectsIdRouteImport
       parentRoute: typeof AppProjectsRoute
+    }
+    '/_app/compliance/vault': {
+      id: '/_app/compliance/vault'
+      path: '/compliance/vault'
+      fullPath: '/compliance/vault'
+      preLoaderRoute: typeof AppComplianceVaultRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/compliance/score': {
+      id: '/_app/compliance/score'
+      path: '/compliance/score'
+      fullPath: '/compliance/score'
+      preLoaderRoute: typeof AppComplianceScoreRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/compliance/reports': {
+      id: '/_app/compliance/reports'
+      path: '/compliance/reports'
+      fullPath: '/compliance/reports'
+      preLoaderRoute: typeof AppComplianceReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/compliance/calendar': {
+      id: '/_app/compliance/calendar'
+      path: '/compliance/calendar'
+      fullPath: '/compliance/calendar'
+      preLoaderRoute: typeof AppComplianceCalendarRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
@@ -279,18 +412,32 @@ interface AppRouteChildren {
   AppBeneficiariesRoute: typeof AppBeneficiariesRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppDocumentsRoute: typeof AppDocumentsRoute
+  AppExpensesRoute: typeof AppExpensesRoute
   AppProjectsRoute: typeof AppProjectsRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
   AppUsersRoute: typeof AppUsersRoute
+  AppWhatsappRoute: typeof AppWhatsappRoute
+  AppComplianceCalendarRoute: typeof AppComplianceCalendarRoute
+  AppComplianceReportsRoute: typeof AppComplianceReportsRoute
+  AppComplianceScoreRoute: typeof AppComplianceScoreRoute
+  AppComplianceVaultRoute: typeof AppComplianceVaultRoute
+  AppComplianceIndexRoute: typeof AppComplianceIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppBeneficiariesRoute: AppBeneficiariesRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppDocumentsRoute: AppDocumentsRoute,
+  AppExpensesRoute: AppExpensesRoute,
   AppProjectsRoute: AppProjectsRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
   AppUsersRoute: AppUsersRoute,
+  AppWhatsappRoute: AppWhatsappRoute,
+  AppComplianceCalendarRoute: AppComplianceCalendarRoute,
+  AppComplianceReportsRoute: AppComplianceReportsRoute,
+  AppComplianceScoreRoute: AppComplianceScoreRoute,
+  AppComplianceVaultRoute: AppComplianceVaultRoute,
+  AppComplianceIndexRoute: AppComplianceIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
