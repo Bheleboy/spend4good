@@ -5,12 +5,16 @@ import { LogOut, Settings, ChevronDown, Bell } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { roleColors } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
+import { useUpcomingDeadlines } from '@/hooks/use-upcoming-deadlines'
+
 
 export function AppNavbar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const upcoming = useUpcomingDeadlines(30)
+
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -34,10 +38,21 @@ export function AppNavbar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" className="relative h-9 w-9 p-0 text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="relative h-9 w-9 p-0 text-muted-foreground"
+          onClick={() => navigate({ to: '/compliance/calendar' as any })}
+          aria-label={`${upcoming} deadlines within 30 days`}
+        >
           <Bell className="h-4 w-4" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
+          {upcoming > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-1 text-[9px] font-bold text-warning-foreground">
+              {upcoming}
+            </span>
+          )}
         </Button>
+
 
         <div className="relative" ref={ref}>
           <button
