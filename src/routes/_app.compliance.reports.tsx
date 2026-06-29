@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useServerFn } from '@tanstack/react-start'
 import { useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Loader2, Sparkles, Copy, Download } from 'lucide-react'
 import { toast } from 'sonner'
+import { generateNarrativeReport } from '@/lib/report.functions'
 
 export const Route = createFileRoute('/_app/compliance/reports')({
   component: ReportGeneratorPage,
@@ -44,6 +46,7 @@ function ReportGeneratorPage() {
   const [form, setForm] = useState<FormState>(initialState)
   const [report, setReport] = useState<string>('')
   const [loading, setLoading] = useState(false)
+  const callGenerate = useServerFn(generateNarrativeReport)
 
   const set = (k: keyof FormState) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -53,20 +56,11 @@ function ReportGeneratorPage() {
     setLoading(true)
     setReport('')
     try {
-      const res = await fetch('/api/generate-report', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        toast.error(data.error ?? 'Failed to generate report')
-        return
-      }
+      const data = await callGenerate({ data: form })
       setReport(data.report ?? '')
       toast.success('Report drafted')
-    } catch {
-      toast.error('Network error')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to generate report')
     } finally {
       setLoading(false)
     }
