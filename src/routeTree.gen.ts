@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ApiGenerateReportRouteImport } from './routes/api/generate-report'
 import { Route as AppWhatsappRouteImport } from './routes/_app.whatsapp'
 import { Route as AppUsersRouteImport } from './routes/_app.users'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
@@ -51,6 +52,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerateReportRoute = ApiGenerateReportRouteImport.update({
+  id: '/api/generate-report',
+  path: '/api/generate-report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppWhatsappRoute = AppWhatsappRouteImport.update({
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/users': typeof AppUsersRoute
   '/whatsapp': typeof AppWhatsappRoute
+  '/api/generate-report': typeof ApiGenerateReportRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/compliance/calendar': typeof AppComplianceCalendarRoute
   '/compliance/reports': typeof AppComplianceReportsRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/users': typeof AppUsersRoute
   '/whatsapp': typeof AppWhatsappRoute
+  '/api/generate-report': typeof ApiGenerateReportRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/compliance/calendar': typeof AppComplianceCalendarRoute
   '/compliance/reports': typeof AppComplianceReportsRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/users': typeof AppUsersRoute
   '/_app/whatsapp': typeof AppWhatsappRoute
+  '/api/generate-report': typeof ApiGenerateReportRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_app/compliance/calendar': typeof AppComplianceCalendarRoute
   '/_app/compliance/reports': typeof AppComplianceReportsRoute
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/users'
     | '/whatsapp'
+    | '/api/generate-report'
     | '/auth/callback'
     | '/compliance/calendar'
     | '/compliance/reports'
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/users'
     | '/whatsapp'
+    | '/api/generate-report'
     | '/auth/callback'
     | '/compliance/calendar'
     | '/compliance/reports'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/users'
     | '/_app/whatsapp'
+    | '/api/generate-report'
     | '/auth/callback'
     | '/_app/compliance/calendar'
     | '/_app/compliance/reports'
@@ -255,6 +267,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  ApiGenerateReportRoute: typeof ApiGenerateReportRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generate-report': {
+      id: '/api/generate-report'
+      path: '/api/generate-report'
+      fullPath: '/api/generate-report'
+      preLoaderRoute: typeof ApiGenerateReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/whatsapp': {
@@ -447,17 +467,9 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  ApiGenerateReportRoute: ApiGenerateReportRoute,
   AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
