@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowRight, Shield, BarChart3, FileCheck, Users, Globe, Zap, CheckCircle, Building2, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PLANS, formatPrice, type Plan } from '@/lib/pricing'
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
   head: () => ({
     meta: [
       { title: 'Spend4Good — Transparent Spend Tracking for Nonprofits' },
-      { name: 'description', content: 'Spend4Good helps funders and nonprofits track every rand transparently. Approve expenses, manage projects, and build trust.' },
+      { name: 'description', content: 'Spend4Good helps funders and nonprofits track every dollar transparently. Approve expenses, manage projects, and build trust.' },
     ],
   }),
 })
@@ -44,7 +45,7 @@ function LandingPage() {
           Transparent Spend Tracking
         </div>
         <h1 className="mx-auto max-w-4xl text-5xl font-bold leading-[1.1] tracking-tight md:text-7xl">
-          Track every rand.
+          Track every dollar.
           <br />
           <span className="text-[oklch(0.5_0_0)]">Build donor trust.</span>
         </h1>
