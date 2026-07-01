@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card'
 import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, Lock, CheckCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { signUpWithPassword } from '@/lib/auth'
-import { PLANS, plansForAudience, formatPrice, type PlanId } from '@/lib/pricing'
+import { plansForAudience, formatPrice, type PlanId } from '@/lib/pricing'
 import { toast } from 'sonner'
 
 type OnboardingType = 'funder' | 'nonprofit' | 'invited'
