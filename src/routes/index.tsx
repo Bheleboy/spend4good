@@ -246,3 +246,44 @@ function LandingPage() {
     </div>
   )
 }
+
+function PricingCard({ plan }: { plan: Plan }) {
+  const audienceType = plan.audience === 'funder' ? 'funder' : 'nonprofit'
+  return (
+    <div className={`relative rounded-2xl border p-8 ${plan.highlight ? 'border-[oklch(0.3_0_0)] bg-[oklch(0.08_0_0)] ring-1 ring-[oklch(0.2_0_0)]' : 'border-[oklch(0.15_0_0)] bg-[oklch(0.06_0_0)]'}`}>
+      {plan.highlight && (
+        <div className="absolute -top-3 left-6 rounded-full bg-[oklch(0.6_0.19_163)] px-3 py-0.5 text-[10px] font-bold uppercase text-[oklch(0.03_0_0)]">
+          Popular
+        </div>
+      )}
+      <div className="mb-1 text-xs font-medium uppercase tracking-widest text-[oklch(0.4_0_0)]">{plan.name}</div>
+      <div className="text-4xl font-bold">
+        ${plan.priceUSD.toLocaleString('en-US')}
+        <span className="text-lg font-normal text-[oklch(0.4_0_0)]">/year</span>
+      </div>
+      <p className="mt-2 text-sm text-[oklch(0.45_0_0)]">
+        {plan.audience === 'funder'
+          ? plan.npoLimit === null
+            ? 'Unlimited nonprofits & projects.'
+            : `Up to ${plan.npoLimit} nonprofits.`
+          : 'For self-registered nonprofits.'}
+      </p>
+      <div className="my-6 h-px bg-[oklch(0.15_0_0)]" />
+      <ul className="space-y-3">
+        {plan.features.map((f) => (
+          <li key={f} className="flex items-start gap-2 text-sm text-[oklch(0.6_0_0)]">
+            <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[oklch(0.6_0.19_163)]" /> {f}
+          </li>
+        ))}
+      </ul>
+      <Link to="/onboarding" search={{ type: audienceType }} className="mt-8 block">
+        <Button className={`w-full font-semibold ${plan.highlight ? 'bg-[oklch(0.95_0_0)] text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)]' : 'border border-[oklch(0.25_0_0)] bg-transparent text-[oklch(0.95_0_0)] hover:bg-[oklch(0.12_0_0)]'}`}>
+          Get Started
+        </Button>
+      </Link>
+    </div>
+  )
+}
+// formatPrice re-exported for future callers; keep it imported so unused warnings stay quiet.
+void formatPrice
+
