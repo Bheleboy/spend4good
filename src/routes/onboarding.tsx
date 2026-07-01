@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, Lock, CheckCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { signUpWithPassword } from '@/lib/auth'
+import { plansForAudience, formatPrice, type PlanId } from '@/lib/pricing'
 import { toast } from 'sonner'
 
 type OnboardingType = 'funder' | 'nonprofit' | 'invited'
@@ -54,10 +55,11 @@ function OnboardingPage() {
     return true
   }
 
-  const planFor = (): 'nonprofit_self' | 'funder_starter' | 'funder_premium' | 'invited_free' => {
+  const planFor = (): PlanId | 'invited_free' => {
     if (type === 'invited') return 'invited_free'
-    if (type === 'nonprofit') return 'nonprofit_self'
-    return selectedPlan === 1 ? 'funder_premium' : 'funder_starter'
+    if (type === 'nonprofit') return 'nonprofit_starter'
+    const funderPlans = plansForAudience('funder')
+    return (funderPlans[selectedPlan]?.id ?? 'funder_starter') as PlanId
   }
 
   const handleComplete = async () => {
@@ -219,10 +221,11 @@ function OnboardingPage() {
               {type === 'nonprofit' && (
                 <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
                   <p className="text-xs text-[oklch(0.45_0_0)]">
-                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — you'll start with a 7-day free trial. If you were invited by a funder,{' '}
+                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — 14-day free trial on any plan. If you were invited by a funder,{' '}
                     <Link to="/onboarding" search={{ type: 'invited' }} className="underline text-[oklch(0.7_0_0)]">
                       click here instead
-                    </Link>.
+                    </Link>{' '}
+                    — invited nonprofits pay nothing, ever.
                   </p>
                 </div>
               )}
@@ -324,38 +327,26 @@ function OnboardingPage() {
           {step === 3 && type !== 'invited' && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Choose your plan</h2>
+              <p className="text-xs text-[oklch(0.45_0_0)]">14-day free trial on any plan. Cancel anytime.</p>
               <div className="space-y-3">
-                {type === 'nonprofit' ? (
+                {plansForAudience(type === 'funder' ? 'funder' : 'nonprofit').map((plan, i) => (
                   <PlanCard
-                    name="Nonprofit"
-                    price="$100/year"
-                    desc="Self-registered nonprofits. Up to 4 internal projects."
-                    features={['Up to 4 active projects', 'Unlimited team members', 'Beneficiaries & geolocated photos', 'WhatsApp uploads', 'Full reporting']}
-                    selected={selectedPlan === 0}
-                    onSelect={() => setSelectedPlan(0)}
-                    highlight
+                    key={plan.id}
+                    name={plan.name}
+                    price={formatPrice(plan.priceUSD)}
+                    desc={
+                      plan.audience === 'funder'
+                        ? plan.npoLimit === null
+                          ? 'Unlimited nonprofits & projects.'
+                          : `Up to ${plan.npoLimit} nonprofits, ${plan.projectLimit ?? 'configurable'} projects each.`
+                        : `Up to ${plan.projectLimit} projects. Full team access.`
+                    }
+                    features={plan.features}
+                    selected={selectedPlan === i}
+                    onSelect={() => setSelectedPlan(i)}
+                    highlight={plan.highlight}
                   />
-                ) : (
-                  <>
-                    <PlanCard
-                      name="Funder Starter"
-                      price="$800/year"
-                      desc="Up to 10 nonprofits, 4 projects per funded nonprofit."
-                      features={['Up to 10 nonprofits', '4 projects per nonprofit', 'Invite & manage nonprofits', 'Portfolio dashboard', 'WhatsApp reporting']}
-                      selected={selectedPlan === 0}
-                      onSelect={() => setSelectedPlan(0)}
-                      highlight
-                    />
-                    <PlanCard
-                      name="Funder Premium"
-                      price="$2,000/year"
-                      desc="Unlimited nonprofits and projects."
-                      features={['Unlimited nonprofits', 'Configurable project limits', 'Advanced reporting & exports', 'Priority support']}
-                      selected={selectedPlan === 1}
-                      onSelect={() => setSelectedPlan(1)}
-                    />
-                  </>
-                )}
+                ))}
               </div>
               <p className="text-xs text-[oklch(0.4_0_0)]">
                 You can upgrade or change your plan anytime from settings.

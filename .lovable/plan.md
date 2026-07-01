@@ -1,60 +1,75 @@
-# Compliance OS — Implementation Plan
+# Spend4Good Pre-Launch Build Plan
 
-A major new module bolted onto the existing Spend4Good app. Built in 4 waves so we ship value early and don't blow up the chat on a single megapatch.
+Sequential build across 9 parts. Each part must be verified before the next begins.
 
-## Scope confirmation
+## Part 1 — Unified USD Pricing
+- Create `src/lib/pricing.ts` with `PLANS` array (4 plans, USD annual) + `formatPrice()` helper.
+- Refactor `src/routes/index.tsx` (landing) and `src/routes/onboarding.tsx` to render pricing from `PLANS`. Remove all hardcoded prices.
+- Remove the "7-Day Trial" card. Add "14-day free trial on any plan. Invited nonprofits pay nothing, ever." messaging.
+- Update hero copy: "Track every dollar. Build donor trust." Neutralize any other ZAR/rand references.
+- Update `spend4good_phase1_migration.sql` `subscription_plan` enum to: `nonprofit_starter`, `funder_starter`, `funder_growth`, `funder_unlimited`, plus retained internal `invited_free`.
 
-- Brand refresh applied app-wide (deep green #1A7F5A primary, amber #F4A623 accent, Inter, no card gradients). Existing screens inherit the new tokens — they'll look subtly different but consistent.
-- Navigation re-grouped into two sections: **Spend Tracker** (existing) and **Compliance OS** (new, with green "NEW" badge).
-- 5 new routes under `/compliance/*` plus a `/pricing` page.
-- 5 new Supabase tables + a `compliance-docs` storage bucket.
-- Claude Sonnet used for the DSD narrative report — **called from a TanStack server function**, not the frontend (the spec says "frontend, API key handled by the platform" but we should not ship an Anthropic key to the browser; server-side is the correct equivalent and keeps the key safe).
+## Part 2 — Paddle Integration
+- `bun add @paddle/paddle-js`.
+- `src/lib/paddle.ts`: `initializePaddle` reading `VITE_PADDLE_CLIENT_TOKEN` + `VITE_PADDLE_ENVIRONMENT`. Export `openCheckout(priceId, email, customData)`.
+- Add `paddlePriceId: ''` field on each Plan with an "IMPORTANT" comment above `PLANS`.
+- Wire pricing card + onboarding plan-select buttons to `openCheckout` (only after org row exists in onboarding).
+- **Webhook**: server route at `src/routes/api/public/paddle-webhook.ts` (TanStack Start uses server routes, not Supabase Edge Functions for app-internal logic; `/api/public/*` bypasses auth). Verifies Paddle signature via `PADDLE_WEBHOOK_SECRET`, logs every event to `paddle_webhook_events`, handles `subscription.created|activated|canceled|payment_failed`, updates `organizations`. Loads `supabaseAdmin` inside handler.
+- Migration `spend4good_paddle_migration.sql`: `paddle_webhook_events` table (service_role only), add `paddle_subscription_id` + `paddle_customer_id` cols on `organizations`.
+- Settings page (`src/routes/_app.settings.tsx` exists — extend it) with current plan + "Manage Billing" link.
+- Document env vars in `.env.example`.
 
-## Open questions before I build
+*Note to user: sandbox-only until Paddle finishes seller/domain verification (1–2 weeks).*
 
-1. **Anthropic API key.** I'll request `ANTHROPIC_API_KEY` via the secrets tool when we hit the Report Generator wave. OK?
-2. **Free-tier gating.** You listed Free / Starter (R199) / Pro (R499) — this contradicts the earlier $100/$800/$2000 USD pricing we set last session. I'll assume **the new ZAR pricing for the Compliance OS gating only**, and leave the existing Spend Tracker plans untouched until you tell me to unify them. Confirm?
-3. **Org profile source.** You already have an `organizations` table from Phase 1. The new spec defines `organisations` (British spelling, different columns: NPO reg #, province, FY end month, etc.). I'll **extend the existing `organizations` table** with the new compliance columns rather than create a duplicate. OK?
-4. **WhatsApp reminders.** The onboarding wizard collects reminder prefs and saves them, but actually *sending* WhatsApp reminders needs a scheduled job (pg_cron + Twilio). I'll wire the UI + storage now and stub the dispatcher — full Twilio send can ship in a later wave alongside the existing WhatsApp work. OK?
+## Part 3 — Jurisdiction-Aware Compliance
+- Ensure `organizations.country` column exists (add in migration if missing).
+- Gate `/compliance` and `/compliance/calendar` on `country === 'ZA'`; otherwise show "South African Compliance Pack" message + feedback button.
+- Migration for `jurisdiction_requests` table with org-scoped RLS.
+- Update all compliance-related copy to say "South African Compliance Pack" explicitly.
+- Funder portfolio dashboard shows "Not applicable" for non-SA NPOs.
 
-## Wave 1 — Foundation (brand + nav + schema)
+## Part 4 — Anthropic: Three Honest Functions
+- (a) Report Generation: relabel existing report output as "DRAFT — review and submit manually to DSD."
+- (b) Document Gap Checker: new `src/lib/doc-review.functions.ts` server fn using Anthropic; add non-blocking "AI Review" panel to the Vault upload flow with disclaimer.
+- (c) Compliance Assistant: chat widget on Compliance Dashboard, system prompt scoped to SA + declines non-SA questions with pointer to jurisdiction feedback flow.
+- Purge any copy implying auto-filing to CIPC/DSD.
 
-- Update `src/styles.css` design tokens to the new green/amber/danger palette; switch font to Inter via `<link>` in `__root.tsx`.
-- Migrate Supabase: extend `organizations` with compliance columns; create `compliance_deadlines`, `narrative_reports`, `compliance_documents`, `compliance_scores`; create `compliance-docs` storage bucket; RLS + grants on all.
-- Refactor `AppSidebar` to render two grouped sections with a "NEW" badge on Compliance OS.
-- Notification bell in `AppNavbar` driven by a `useDeadlines()` hook (amber dot if any deadline ≤30 days).
+## Part 5 — Remove Google OAuth
+- Delete `signInWithGoogle` from `src/lib/auth.ts`.
+- Strip Google button/SVG/divider from `src/routes/login.tsx`. Add "Forgot password?" flow.
+- New `src/routes/auth.reset-password.tsx` handling recovery token → `updateUser({ password })` → redirect to `/login`.
 
-## Wave 2 — Compliance Dashboard + Deadline Calendar
+## Part 6 — Invitations Table
+- Migration `spend4good_invitations_migration.sql` per spec.
+- Enforce exact `.eq('token', ...)` filter convention in application code.
 
-- `/compliance` — Compliance Dashboard: 4 stat cards (score ring, deadlines this month, overdue docs, days-until-next), 12-month horizontal timeline with colour-coded dots + side drawer, prioritised Action Items list.
-- `/compliance/onboarding` — 4-step wizard (Org details → Compliance profile → Auto-generated deadline preview → WhatsApp reminders). Deadline calc helpers in `src/lib/compliance/deadlines.ts` (DSD = FY end +9mo, CIPC = Jan 31, S18A = FY end −3mo, POPIA = Jul 1, etc.).
-- `/compliance/calendar` — full monthly grid (custom React calendar, no heavy dep), 60-day side list, filter bar, "Add Custom Deadline" modal.
-- Route guard: if user has no compliance profile, redirect from any `/compliance/*` to `/compliance/onboarding`.
+## Part 7 — Funder Invite + Portfolio Dashboard
+- New `src/routes/_app.funder.invite.tsx`: capacity-aware invite form using PLANS npoLimit, inserts to `invitations`, sends email (check existing email infra — if none, flag rather than guess).
+- New `src/routes/_app.funder.dashboard.tsx` (or extend existing): joined view of `funder_nonprofits` + pending invitations, gated compliance status, "Invite More" button disabled at capacity.
+- Sidebar entry for funder role.
 
-## Wave 3 — Report Generator
+## Part 8 — Invited Nonprofit Onboarding
+- `validateSearch` extracts `type` + `token` in `src/routes/onboarding.tsx`.
+- For `type=invited`: query `invitations` by exact token; show error state on invalid/expired/accepted; pre-fill orgName/email + funder banner if valid; no-token → guidance.
+- Real `handleComplete` for invited flow: create auth user, org (`invited_free`), user row, `user_roles` admin, `funder_nonprofits` active, mark invite accepted, redirect to `/login`.
 
-- `/compliance/reports` — two-panel layout (5-tab form left, live preview right).
-- `generateNarrativeReport` server function: takes form JSON, calls Claude Sonnet with the exact system prompt from the spec, streams generated text back, persists to `narrative_reports`.
-- PDF/DOCX export (using `pdf-lib` + `docx` npm packages, server-side).
-- "Mark as Final" locks the row and surfaces it in the Vault.
+## Part 9 — RLS Audit
+- Review policies on: organizations, users, user_roles, funder_nonprofits, invitations, subscriptions, jurisdiction_requests, paddle_webhook_events, expenses, projects, documents.
+- Explicitly verify cross-funder invitation isolation, cross-nonprofit data isolation, and webhook events locked to service_role.
+- Fix any leaks found; deliver a written audit summary.
 
-## Wave 4 — Document Vault, Health Score, Pricing
+## Technical Notes
+- All SQL is delivered as migration files for you to run in the external Supabase SQL editor (matching prior workflow).
+- Paddle webhook is a **TanStack server route** at `/api/public/paddle-webhook`, not a Supabase Edge Function — matches the app's runtime and the stack's guidance.
+- Anthropic calls go through `createServerFn` using the existing `ANTHROPIC_API_KEY` secret.
+- The dark oklch theme is preserved throughout; only copy and structure change.
 
-- `/compliance/vault` — folder tree + file grid, upload modal, expiry tracking, auto-status (current/expiring/expired) via computed column or client logic.
-- `/compliance/score` — circular gauge, 5 category bars (filing / docs / governance / financial / policy), each with a "Fix This" drill-down. Score computed client-side from Supabase data using a documented formula in `src/lib/compliance/score.ts`. Share-public-badge link + 1-page PDF summary.
-- `/pricing` — 3 tier cards. Generic `<UpgradeModal />` component used by every gated feature.
+## Sequencing
+Part 1 → Part 2 (test in sandbox) → Parts 3+4 → Part 5 → Parts 6+7+8 → Part 9. Each part committed and buildable before the next begins.
 
-## Technical notes
+## What I need from you before starting
+1. **Paddle credentials**: I'll store `VITE_PADDLE_CLIENT_TOKEN`, `VITE_PADDLE_ENVIRONMENT=sandbox`, and `PADDLE_WEBHOOK_SECRET` when you have them. Say "go" to start Part 1 now — you can paste Paddle keys when we hit Part 2.
+2. **Email infra**: confirm you want me to check current state and flag if missing (per your instruction) rather than adding a provider now.
+3. **Anthropic key**: already stored — no action needed.
 
-- **Frontend**: React 19 + Tailwind v4. All new colours added as `@theme` tokens in `src/styles.css`; never hard-coded.
-- **Routing**: TanStack file-based routes under `src/routes/_app.compliance.*.tsx` so they inherit the existing app shell.
-- **Server**: All Supabase writes through `createServerFn` with `requireSupabaseAuth`. Claude call lives in `src/lib/compliance/report.functions.ts`, reads `process.env.ANTHROPIC_API_KEY` inside the handler.
-- **Storage**: `compliance-docs` bucket (private), RLS on `storage.objects` scoped by `org_id` prefix in the path.
-- **Dates**: All deadline math in `Africa/Johannesburg` via `date-fns-tz`.
-- **Currency**: `Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' })`.
-
-## What I'll deliver this turn after you approve
-
-Just **Wave 1** (tokens, schema, nav, bell). Then I'll pause for you to run the migration and confirm before I move to Wave 2. This keeps each turn reviewable and avoids a 50-file blob.
-
-Reply with answers to the 4 questions above (or just "yes to all, proceed") and I'll start Wave 1.
+Approve this and I'll start executing Part 1 immediately.

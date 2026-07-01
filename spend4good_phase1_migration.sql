@@ -11,11 +11,12 @@ exception when duplicate_object then null; end $$;
 
 do $$ begin
   create type public.subscription_plan as enum (
-    'nonprofit_self',    -- $100/yr
-    'funder_starter',    -- $800/yr
-    'funder_premium',    -- $2000/yr
-    'invited_free',      -- nonprofit invited by funder
-    'trial'
+    'nonprofit_starter',   -- $149/yr
+    'funder_starter',      -- $999/yr
+    'funder_growth',       -- $1,999/yr
+    'funder_unlimited',    -- $3,499/yr
+    'invited_free',        -- nonprofit invited by funder (internal only)
+    'trial'                -- 14-day free trial marker
   );
 exception when duplicate_object then null; end $$;
 
