@@ -11,3 +11,7 @@ verify_jwt = true
 
 [functions.send-deadline-reminder]
 verify_jwt = true
+
+[functions.accept-invite]
+verify_jwt = false
+

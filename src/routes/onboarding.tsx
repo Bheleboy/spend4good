@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -13,8 +13,9 @@ type OnboardingType = 'funder' | 'nonprofit' | 'invited'
 
 export const Route = createFileRoute('/onboarding')({
   component: OnboardingPage,
-  validateSearch: (search: Record<string, unknown>): { type: OnboardingType } => ({
+  validateSearch: (search: Record<string, unknown>): { type: OnboardingType; token?: string } => ({
     type: (search.type as OnboardingType) || 'nonprofit',
+    token: typeof search.token === 'string' ? search.token : undefined,
   }),
   head: () => ({
     meta: [
@@ -24,19 +25,32 @@ export const Route = createFileRoute('/onboarding')({
   }),
 })
 
+interface InviteInfo {
+  id: string
+  funder_org_id: string
+  nonprofit_name: string
+  nonprofit_email: string
+  funder_name?: string
+  status: string
+  expires_at: string
+}
+
 function OnboardingPage() {
-  const { type } = Route.useSearch()
+  const { type, token } = Route.useSearch()
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState(0)
+  const [invite, setInvite] = useState<InviteInfo | null>(null)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const [validatingInvite, setValidatingInvite] = useState(false)
   const [form, setForm] = useState({
     orgName: '',
     fullName: '',
     email: '',
     password: '',
     phone: '+27',
-    inviteCode: '',
+    inviteCode: token ?? '',
     country: 'ZA',
   })
 
@@ -46,9 +60,61 @@ function OnboardingPage() {
 
   const update = (field: string, value: string) => setForm((p) => ({ ...p, [field]: value }))
 
+  // Look up invitation details from token (public policy allows select-by-token)
+  const validateInvite = async (t: string): Promise<InviteInfo | null> => {
+    setValidatingInvite(true)
+    setInviteError(null)
+    try {
+      const { data, error } = await supabase
+        .from('invitations')
+        .select('id, funder_org_id, nonprofit_name, nonprofit_email, status, expires_at')
+        .eq('token', t)
+        .maybeSingle()
+
+      if (error || !data) {
+        setInviteError('Invitation not found. Check your link or code.')
+        return null
+      }
+      if (data.status === 'accepted') {
+        setInviteError('This invitation has already been used. Sign in instead.')
+        return null
+      }
+      if (data.status === 'revoked') {
+        setInviteError('This invitation was revoked by the funder.')
+        return null
+      }
+      if (new Date(data.expires_at).getTime() < Date.now()) {
+        setInviteError('This invitation has expired. Ask the funder to resend.')
+        return null
+      }
+
+      // Best-effort funder name lookup (respects RLS; may be null)
+      const { data: funder } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('id', data.funder_org_id)
+        .maybeSingle()
+
+      const info: InviteInfo = { ...data, funder_name: funder?.name }
+      setInvite(info)
+      setForm((p) => ({ ...p, email: data.nonprofit_email, orgName: data.nonprofit_name }))
+      return info
+    } finally {
+      setValidatingInvite(false)
+    }
+  }
+
+  // Auto-validate when arriving with ?token=
+  useEffect(() => {
+    if (type === 'invited' && token && !invite && !inviteError) {
+      validateInvite(token)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, token])
+
   const canNext = () => {
     if (step === 1) {
-      if (type === 'invited') return form.inviteCode.length > 3
+      if (type === 'invited') return !!invite
       return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7
     }
     if (step === 2) return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
@@ -62,21 +128,84 @@ function OnboardingPage() {
     return (funderPlans[selectedPlan]?.id ?? 'funder_starter') as PlanId
   }
 
+  const handleInviteContinue = async () => {
+    if (invite) {
+      setStep(2)
+      return
+    }
+    if (!form.inviteCode.trim()) return
+    const info = await validateInvite(form.inviteCode.trim())
+    if (info) setStep(2)
+  }
+
   const handleComplete = async () => {
     setLoading(true)
     try {
+      // === Invited flow ===
       if (type === 'invited') {
-        toast.success('Invite verified! Please complete sign in.')
+        if (!invite) {
+          toast.error('Invitation not validated')
+          setLoading(false)
+          return
+        }
+
+        const { data: authData, error: authError } = await signUpWithPassword(
+          form.email,
+          form.password,
+          form.fullName,
+        )
+        if (authError || !authData.user) {
+          toast.error(authError?.message || 'Failed to create account')
+          setLoading(false)
+          return
+        }
+
+        const { data: accepted, error: acceptErr } = await supabase.functions.invoke('accept-invite', {
+          body: {
+            token: invite.id ? form.inviteCode.trim() || token : token,
+            auth_user_id: authData.user.id,
+            full_name: form.fullName,
+            email: form.email,
+            phone: form.phone,
+            country: form.country,
+          },
+        })
+        if (acceptErr || !(accepted as { ok?: boolean })?.ok) {
+          const msg =
+            (accepted as { error?: string })?.error ||
+            acceptErr?.message ||
+            'Could not accept invitation'
+          toast.error(msg)
+          setLoading(false)
+          return
+        }
+
+        // Best-effort welcome email
+        try {
+          await supabase.functions.invoke('send-welcome', {
+            body: {
+              full_name: form.fullName,
+              email: form.email,
+              org_name: invite.nonprofit_name,
+              account_type: 'nonprofit',
+              org_id: (accepted as { org_id?: string }).org_id,
+            },
+          })
+        } catch (e) {
+          console.warn('welcome email failed', e)
+        }
+
+        toast.success('Welcome to Spend4Good! Please confirm your email, then sign in.')
         navigate({ to: '/login' })
         return
       }
 
+      // === Self-reg (funder / nonprofit) ===
       const role: 'admin' | 'funder_admin' = type === 'funder' ? 'funder_admin' : 'admin'
       const orgType: 'funder' | 'nonprofit' = type === 'funder' ? 'funder' : 'nonprofit'
       const plan = planFor()
       const slug = form.orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
-      // 1. Create Supabase auth user
       const { data: authData, error: authError } = await signUpWithPassword(form.email, form.password, form.fullName)
       if (authError || !authData.user) {
         toast.error(authError?.message || 'Failed to create account')
@@ -85,7 +214,6 @@ function OnboardingPage() {
       }
       const authUserId = authData.user.id
 
-      // 2. Create organization
       const { data: org, error: orgError } = await supabase
         .from('organizations')
         .insert({
@@ -106,7 +234,6 @@ function OnboardingPage() {
         return
       }
 
-      // 3. Create public.users row with id matching auth user
       const { error: userError } = await supabase.from('users').insert({
         id: authUserId,
         phone_number: form.phone,
@@ -124,14 +251,12 @@ function OnboardingPage() {
         return
       }
 
-      // 4. Assign role
       await supabase.from('user_roles').insert({
         user_id: authUserId,
         role,
         org_id: org.id,
       })
 
-      // 5. Fire welcome email (best-effort; never block signup on this)
       try {
         await supabase.functions.invoke('send-welcome', {
           body: {
@@ -250,25 +375,57 @@ function OnboardingPage() {
           {/* Step 1 - Invite code */}
           {step === 1 && type === 'invited' && (
             <div className="space-y-5">
-              <h2 className="text-lg font-semibold">Enter your invite code</h2>
-              <p className="text-sm text-[oklch(0.45_0_0)]">
-                Your funder should have shared an invite code or link with you. Enter it below to get started — no payment required.
-              </p>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Invite Code</label>
-                <Input
-                  value={form.inviteCode}
-                  onChange={(e) => update('inviteCode', e.target.value)}
-                  placeholder="e.g. NLC-2026-ABCD"
-                  className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)] text-center tracking-widest text-lg"
-                />
-              </div>
-              <div className="flex items-start gap-2 rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
-                <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[oklch(0.6_0.19_163)]" />
-                <p className="text-xs text-[oklch(0.45_0_0)]">
-                  Invited nonprofits get full access at no cost. Your funder covers the platform.
-                </p>
-              </div>
+              <h2 className="text-lg font-semibold">
+                {invite ? "You're invited!" : 'Enter your invite code'}
+              </h2>
+
+              {!invite && !validatingInvite && (
+                <>
+                  <p className="text-sm text-[oklch(0.45_0_0)]">
+                    Your funder should have shared an invite link or code. Paste it below.
+                  </p>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Invite Code</label>
+                    <Input
+                      value={form.inviteCode}
+                      onChange={(e) => update('inviteCode', e.target.value)}
+                      placeholder="Paste your invite token"
+                      className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)] text-center tracking-widest"
+                    />
+                  </div>
+                  {inviteError && (
+                    <p className="text-sm text-[oklch(0.65_0.2_25)]">{inviteError}</p>
+                  )}
+                </>
+              )}
+
+              {validatingInvite && (
+                <div className="flex items-center gap-2 text-sm text-[oklch(0.6_0_0)]">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Validating invitation…
+                </div>
+              )}
+
+              {invite && (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-5">
+                    <p className="text-xs uppercase tracking-wide text-[oklch(0.4_0_0)]">Invited by</p>
+                    <p className="mt-1 text-base font-semibold text-[oklch(0.9_0_0)]">
+                      {invite.funder_name ?? 'A funder on Spend4Good'}
+                    </p>
+                    <div className="mt-4 border-t border-[oklch(0.12_0_0)] pt-4">
+                      <p className="text-xs uppercase tracking-wide text-[oklch(0.4_0_0)]">Your organisation</p>
+                      <p className="mt-1 text-base font-semibold text-[oklch(0.9_0_0)]">{invite.nonprofit_name}</p>
+                      <p className="text-xs text-[oklch(0.5_0_0)]">{invite.nonprofit_email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[oklch(0.6_0.19_163)]" />
+                    <p className="text-xs text-[oklch(0.45_0_0)]">
+                      Fully funded by your funder — no payment required, ever. Continue to set up your account.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -301,9 +458,15 @@ function OnboardingPage() {
                       onChange={(e) => update('email', e.target.value)}
                       placeholder="you@organization.co.za"
                       type="email"
+                      readOnly={!!invite}
                       className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
                     />
                   </div>
+                  {invite && (
+                    <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">
+                      Locked to the address your funder invited.
+                    </p>
+                  )}
                 </div>
               )}
               <div>
@@ -384,11 +547,19 @@ function OnboardingPage() {
             )}
             {step < totalSteps ? (
               <Button
-                onClick={() => setStep((s) => s + 1)}
-                disabled={!canNext()}
+                onClick={type === 'invited' && step === 1 ? handleInviteContinue : () => setStep((s) => s + 1)}
+                disabled={
+                  type === 'invited' && step === 1
+                    ? validatingInvite || (!invite && form.inviteCode.trim().length < 4)
+                    : !canNext()
+                }
                 className="bg-[oklch(0.95_0_0)] text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)] font-semibold px-6"
               >
-                Continue <ArrowRight className="ml-1 h-4 w-4" />
+                {validatingInvite ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Validating…</>
+                ) : (
+                  <>Continue <ArrowRight className="ml-1 h-4 w-4" /></>
+                )}
               </Button>
             ) : (
               <Button
