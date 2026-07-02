@@ -65,9 +65,11 @@ function OnboardingPage() {
     setValidatingInvite(true)
     setInviteError(null)
     try {
-      const { data, error } = await supabase
+      const { data: raw, error } = await (supabase as any)
         .rpc('get_invitation_by_token', { _token: t })
         .maybeSingle()
+      const data = raw as null | { id: string; funder_org_id: string; nonprofit_name: string; nonprofit_email: string; status: string; expires_at: string; funder_name: string | null }
+
 
       if (error || !data) {
         setInviteError('Invitation not found. Check your link or code.')
