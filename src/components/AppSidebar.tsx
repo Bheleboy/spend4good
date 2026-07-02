@@ -21,6 +21,7 @@ const sections: NavSection[] = [
       { to: '/documents', label: 'Documents', icon: FileText },
       { to: '/expenses', label: 'Expenses', icon: Receipt },
       { to: '/whatsapp', label: 'WhatsApp Log', icon: MessageCircle },
+      { to: '/funder/invites', label: 'Invite NPO', icon: Mail, funderAdminOnly: true },
       { to: '/users', label: 'Users', icon: Users, adminOnly: true },
       { to: '/settings', label: 'Settings', icon: Settings },
     ],
