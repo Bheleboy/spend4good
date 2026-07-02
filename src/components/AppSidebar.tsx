@@ -63,7 +63,10 @@ export function AppSidebar() {
 
       <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-2">
         {sections.map((section) => {
-          const items = section.items.filter(i => !i.adminOnly || user?.role === 'admin')
+          const items = section.items.filter(i =>
+            (!i.adminOnly || user?.role === 'admin') &&
+            (!i.funderAdminOnly || user?.role === 'funder_admin')
+          )
           if (items.length === 0) return null
           return (
             <div key={section.label} className="space-y-0.5">
