@@ -647,6 +647,18 @@ export type Database = {
     }
     Functions: {
       current_user_org_id: { Args: never; Returns: string }
+      get_invitation_by_token: {
+        Args: { _token: string }
+        Returns: {
+          expires_at: string
+          funder_name: string
+          funder_org_id: string
+          id: string
+          nonprofit_email: string
+          nonprofit_name: string
+          status: string
+        }[]
+      }
       has_role_in_org: {
         Args: { _org_id: string; _required_role: string; _user_id: string }
         Returns: boolean

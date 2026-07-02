@@ -60,16 +60,16 @@ function OnboardingPage() {
 
   const update = (field: string, value: string) => setForm((p) => ({ ...p, [field]: value }))
 
-  // Look up invitation details from token (public policy allows select-by-token)
+  // Look up invitation details by token via secure RPC (no blanket table SELECT)
   const validateInvite = async (t: string): Promise<InviteInfo | null> => {
     setValidatingInvite(true)
     setInviteError(null)
     try {
-      const { data, error } = await supabase
-        .from('invitations')
-        .select('id, funder_org_id, nonprofit_name, nonprofit_email, status, expires_at')
-        .eq('token', t)
+      const { data: raw, error } = await (supabase as any)
+        .rpc('get_invitation_by_token', { _token: t })
         .maybeSingle()
+      const data = raw as null | { id: string; funder_org_id: string; nonprofit_name: string; nonprofit_email: string; status: string; expires_at: string; funder_name: string | null }
+
 
       if (error || !data) {
         setInviteError('Invitation not found. Check your link or code.')
@@ -88,14 +88,15 @@ function OnboardingPage() {
         return null
       }
 
-      // Best-effort funder name lookup (respects RLS; may be null)
-      const { data: funder } = await supabase
-        .from('organizations')
-        .select('name')
-        .eq('id', data.funder_org_id)
-        .maybeSingle()
-
-      const info: InviteInfo = { ...data, funder_name: funder?.name }
+      const info: InviteInfo = {
+        id: data.id,
+        funder_org_id: data.funder_org_id,
+        nonprofit_name: data.nonprofit_name,
+        nonprofit_email: data.nonprofit_email,
+        status: data.status,
+        expires_at: data.expires_at,
+        funder_name: data.funder_name ?? undefined,
+      }
       setInvite(info)
       setForm((p) => ({ ...p, email: data.nonprofit_email, orgName: data.nonprofit_name }))
       return info
@@ -103,6 +104,7 @@ function OnboardingPage() {
       setValidatingInvite(false)
     }
   }
+
 
   // Auto-validate when arriving with ?token=
   useEffect(() => {
