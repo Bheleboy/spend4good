@@ -2,13 +2,13 @@ import { Link, useLocation } from '@tanstack/react-router'
 import {
   LayoutDashboard, FolderKanban, FileText, Users, Settings,
   ChevronLeft, ChevronRight, Heart, Receipt, MessageCircle,
-  ShieldCheck, CalendarDays, FileEdit, Archive, Activity,
+  ShieldCheck, CalendarDays, FileEdit, Archive, Activity, Mail,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean; funderAdminOnly?: boolean }
 type NavSection = { label: string; badge?: string; items: NavItem[] }
 
 const sections: NavSection[] = [
