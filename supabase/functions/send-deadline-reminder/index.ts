@@ -1,14 +1,9 @@
 import { CORS_HEADERS, sendEmail, shell, button, logEmail, getAdmin, json } from '../_shared/email.ts'
 
-// Called by pg_cron daily at 06:00 UTC. Auth via X-Cron-Secret header.
+// Called daily by pg_cron via net.http_post with the anon key.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
-
-  const secret = req.headers.get('x-cron-secret')
-  if (!secret || secret !== Deno.env.get('CRON_SECRET')) {
-    return json({ error: 'Unauthorized' }, 401)
-  }
 
   const admin = await getAdmin()
 
