@@ -24,6 +24,7 @@ import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppBeneficiariesRouteImport } from './routes/_app.beneficiaries'
 import { Route as AppComplianceIndexRouteImport } from './routes/_app.compliance.index'
 import { Route as AppProjectsIdRouteImport } from './routes/_app.projects.$id'
+import { Route as AppFunderInvitesRouteImport } from './routes/_app.funder.invites'
 import { Route as AppComplianceVaultRouteImport } from './routes/_app.compliance.vault'
 import { Route as AppComplianceScoreRouteImport } from './routes/_app.compliance.score'
 import { Route as AppComplianceReportsRouteImport } from './routes/_app.compliance.reports'
@@ -103,6 +104,11 @@ const AppProjectsIdRoute = AppProjectsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppProjectsRoute,
 } as any)
+const AppFunderInvitesRoute = AppFunderInvitesRouteImport.update({
+  id: '/funder/invites',
+  path: '/funder/invites',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppComplianceVaultRoute = AppComplianceVaultRouteImport.update({
   id: '/compliance/vault',
   path: '/compliance/vault',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/compliance/reports': typeof AppComplianceReportsRoute
   '/compliance/score': typeof AppComplianceScoreRoute
   '/compliance/vault': typeof AppComplianceVaultRoute
+  '/funder/invites': typeof AppFunderInvitesRoute
   '/projects/$id': typeof AppProjectsIdRoute
   '/compliance/': typeof AppComplianceIndexRoute
 }
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/compliance/reports': typeof AppComplianceReportsRoute
   '/compliance/score': typeof AppComplianceScoreRoute
   '/compliance/vault': typeof AppComplianceVaultRoute
+  '/funder/invites': typeof AppFunderInvitesRoute
   '/projects/$id': typeof AppProjectsIdRoute
   '/compliance': typeof AppComplianceIndexRoute
 }
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/_app/compliance/reports': typeof AppComplianceReportsRoute
   '/_app/compliance/score': typeof AppComplianceScoreRoute
   '/_app/compliance/vault': typeof AppComplianceVaultRoute
+  '/_app/funder/invites': typeof AppFunderInvitesRoute
   '/_app/projects/$id': typeof AppProjectsIdRoute
   '/_app/compliance/': typeof AppComplianceIndexRoute
 }
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/compliance/reports'
     | '/compliance/score'
     | '/compliance/vault'
+    | '/funder/invites'
     | '/projects/$id'
     | '/compliance/'
   fileRoutesByTo: FileRoutesByTo
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/compliance/reports'
     | '/compliance/score'
     | '/compliance/vault'
+    | '/funder/invites'
     | '/projects/$id'
     | '/compliance'
   id:
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/_app/compliance/reports'
     | '/_app/compliance/score'
     | '/_app/compliance/vault'
+    | '/_app/funder/invites'
     | '/_app/projects/$id'
     | '/_app/compliance/'
   fileRoutesById: FileRoutesById
@@ -365,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjectsIdRouteImport
       parentRoute: typeof AppProjectsRoute
     }
+    '/_app/funder/invites': {
+      id: '/_app/funder/invites'
+      path: '/funder/invites'
+      fullPath: '/funder/invites'
+      preLoaderRoute: typeof AppFunderInvitesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/compliance/vault': {
       id: '/_app/compliance/vault'
       path: '/compliance/vault'
@@ -421,6 +440,7 @@ interface AppRouteChildren {
   AppComplianceReportsRoute: typeof AppComplianceReportsRoute
   AppComplianceScoreRoute: typeof AppComplianceScoreRoute
   AppComplianceVaultRoute: typeof AppComplianceVaultRoute
+  AppFunderInvitesRoute: typeof AppFunderInvitesRoute
   AppComplianceIndexRoute: typeof AppComplianceIndexRoute
 }
 
@@ -437,6 +457,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppComplianceReportsRoute: AppComplianceReportsRoute,
   AppComplianceScoreRoute: AppComplianceScoreRoute,
   AppComplianceVaultRoute: AppComplianceVaultRoute,
+  AppFunderInvitesRoute: AppFunderInvitesRoute,
   AppComplianceIndexRoute: AppComplianceIndexRoute,
 }
 

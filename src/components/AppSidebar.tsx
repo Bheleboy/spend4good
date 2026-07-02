@@ -2,13 +2,13 @@ import { Link, useLocation } from '@tanstack/react-router'
 import {
   LayoutDashboard, FolderKanban, FileText, Users, Settings,
   ChevronLeft, ChevronRight, Heart, Receipt, MessageCircle,
-  ShieldCheck, CalendarDays, FileEdit, Archive, Activity,
+  ShieldCheck, CalendarDays, FileEdit, Archive, Activity, Mail,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean; funderAdminOnly?: boolean }
 type NavSection = { label: string; badge?: string; items: NavItem[] }
 
 const sections: NavSection[] = [
@@ -21,6 +21,7 @@ const sections: NavSection[] = [
       { to: '/documents', label: 'Documents', icon: FileText },
       { to: '/expenses', label: 'Expenses', icon: Receipt },
       { to: '/whatsapp', label: 'WhatsApp Log', icon: MessageCircle },
+      { to: '/funder/invites', label: 'Invite NPO', icon: Mail, funderAdminOnly: true },
       { to: '/users', label: 'Users', icon: Users, adminOnly: true },
       { to: '/settings', label: 'Settings', icon: Settings },
     ],
@@ -62,7 +63,10 @@ export function AppSidebar() {
 
       <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-2">
         {sections.map((section) => {
-          const items = section.items.filter(i => !i.adminOnly || user?.role === 'admin')
+          const items = section.items.filter(i =>
+            (!i.adminOnly || user?.role === 'admin') &&
+            (!i.funderAdminOnly || user?.role === 'funder_admin')
+          )
           if (items.length === 0) return null
           return (
             <div key={section.label} className="space-y-0.5">
