@@ -131,6 +131,21 @@ function OnboardingPage() {
         org_id: org.id,
       })
 
+      // 5. Fire welcome email (best-effort; never block signup on this)
+      try {
+        await supabase.functions.invoke('send-welcome', {
+          body: {
+            full_name: form.fullName,
+            email: form.email,
+            org_name: form.orgName,
+            account_type: orgType,
+            org_id: org.id,
+          },
+        })
+      } catch (e) {
+        console.warn('welcome email failed', e)
+      }
+
       toast.success('Account created! Check your email to confirm, then sign in.')
       navigate({ to: '/login' })
     } catch {

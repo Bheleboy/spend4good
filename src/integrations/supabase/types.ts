@@ -143,6 +143,47 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          email_type: string
+          error_details: string | null
+          id: string
+          org_id: string | null
+          recipient_email: string
+          resend_id: string | null
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          email_type: string
+          error_details?: string | null
+          id?: string
+          org_id?: string | null
+          recipient_email: string
+          resend_id?: string | null
+          sent_at?: string
+          status?: string
+        }
+        Update: {
+          email_type?: string
+          error_details?: string | null
+          id?: string
+          org_id?: string | null
+          recipient_email?: string
+          resend_id?: string | null
+          sent_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number

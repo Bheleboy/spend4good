@@ -1,1 +1,13 @@
 project_id = "wyduakldroqavjaplodc"
+
+[functions.send-invite]
+verify_jwt = true
+
+[functions.send-welcome]
+verify_jwt = true
+
+[functions.send-expense-notification]
+verify_jwt = true
+
+[functions.send-deadline-reminder]
+verify_jwt = false
