@@ -18,13 +18,10 @@ export interface AuthUser {
     subscription_tier: string
     type?: string | null
     subscription_plan?: string | null
+    country?: string | null
   }
 }
 
-/**
- * Loads the profile row from public.users for the current auth user.
- * Convention: public.users.id === auth.users.id.
- */
 export async function loadProfile(authUserId: string, fallbackEmail?: string | null): Promise<AuthUser | null> {
   const { data, error } = await supabase
     .from('users')
@@ -34,7 +31,6 @@ export async function loadProfile(authUserId: string, fallbackEmail?: string | n
 
   if (error || !data) return null
 
-  // Fetch role from user_roles (preferred) — fall back to legacy users.role column
   const { data: roleRow } = await supabase
     .from('user_roles')
     .select('role')
@@ -60,6 +56,7 @@ export async function loadProfile(authUserId: string, fallbackEmail?: string | n
           subscription_tier: data.organizations.subscription_tier,
           type: data.organizations.type ?? null,
           subscription_plan: data.organizations.subscription_plan ?? null,
+          country: data.organizations.country ?? null,
         }
       : undefined,
   }
@@ -77,13 +74,6 @@ export async function signUpWithPassword(email: string, password: string, fullNa
       emailRedirectTo: `${window.location.origin}/auth/callback`,
       data: { full_name: fullName },
     },
-  })
-}
-
-export async function signInWithGoogle() {
-  return supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: `${window.location.origin}/auth/callback` },
   })
 }
 

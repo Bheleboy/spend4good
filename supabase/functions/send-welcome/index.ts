@@ -19,13 +19,26 @@ Deno.serve(async (req) => {
   }
 
   const subject = `Welcome to Spend4Good, ${body.org_name}`
-  let html: string
+
+  async function sendAndLog(email_type: 'welcome_nonprofit' | 'welcome_funder', html: string) {
+    const admin = await getAdmin()
+    const result = await sendEmail({ to: body!.email, subject, html })
+    await logEmail(admin, {
+      org_id: body!.org_id ?? null,
+      recipient_email: body!.email,
+      email_type,
+      resend_id: result.id ?? null,
+      status: result.ok ? 'sent' : 'failed',
+      error_details: result.error ?? null,
+    })
+    if (!result.ok) throw new Error(result.error)
+  }
 
   if (body.account_type === 'nonprofit') {
     const relationship = body.invited_by
       ? `<p style="margin:0 0 16px;font-size:15px;line-height:22px;color:#c5c5c5;">You've been connected to <strong style="color:#f5f5f5;">${body.invited_by}</strong> on Spend4Good. They can now view your projects and expenses.</p>`
       : `<p style="margin:0 0 16px;font-size:15px;line-height:22px;color:#c5c5c5;">Your 14-day free trial starts now.</p>`
-    html = shell(`
+    const html = shell(`
       <tr><td style="padding:8px 32px 0;">
         <h1 style="margin:16px 0 8px;font-size:22px;font-weight:800;">Welcome, ${body.full_name}</h1>
         <p style="margin:0 0 16px;font-size:15px;line-height:22px;color:#c5c5c5;">Your account for ${body.org_name} is ready.</p>
@@ -38,9 +51,9 @@ Deno.serve(async (req) => {
         <p style="margin:0 0 8px;">${button('Go to my dashboard', 'https://spend4good.com/dashboard')}</p>
       </td></tr>
     `)
-    await sendAndLog('welcome_nonprofit')
+    await sendAndLog('welcome_nonprofit', html)
   } else {
-    html = shell(`
+    const html = shell(`
       <tr><td style="padding:8px 32px 0;">
         <h1 style="margin:16px 0 8px;font-size:22px;font-weight:800;">Welcome, ${body.full_name}</h1>
         <p style="margin:0 0 16px;font-size:15px;line-height:22px;color:#c5c5c5;">Your funder account for ${body.org_name} is ready.</p>
@@ -52,21 +65,7 @@ Deno.serve(async (req) => {
         <p style="margin:0 0 8px;">${button('Invite my first nonprofit', 'https://spend4good.com/funder/invite')}</p>
       </td></tr>
     `)
-    await sendAndLog('welcome_funder')
-  }
-
-  async function sendAndLog(email_type: 'welcome_nonprofit' | 'welcome_funder') {
-    const admin = await getAdmin()
-    const result = await sendEmail({ to: body!.email, subject, html })
-    await logEmail(admin, {
-      org_id: body!.org_id ?? null,
-      recipient_email: body!.email,
-      email_type,
-      resend_id: result.id ?? null,
-      status: result.ok ? 'sent' : 'failed',
-      error_details: result.error ?? null,
-    })
-    if (!result.ok) throw new Error(result.error)
+    await sendAndLog('welcome_funder', html)
   }
 
   return json({ ok: true })

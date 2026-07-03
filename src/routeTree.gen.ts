@@ -13,6 +13,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppWhatsappRouteImport } from './routes/_app.whatsapp'
 import { Route as AppUsersRouteImport } from './routes/_app.users'
@@ -25,6 +26,8 @@ import { Route as AppBeneficiariesRouteImport } from './routes/_app.beneficiarie
 import { Route as AppComplianceIndexRouteImport } from './routes/_app.compliance.index'
 import { Route as AppProjectsIdRouteImport } from './routes/_app.projects.$id'
 import { Route as AppFunderInvitesRouteImport } from './routes/_app.funder.invites'
+import { Route as AppFunderInviteRouteImport } from './routes/_app.funder.invite'
+import { Route as AppFunderDashboardRouteImport } from './routes/_app.funder.dashboard'
 import { Route as AppComplianceVaultRouteImport } from './routes/_app.compliance.vault'
 import { Route as AppComplianceScoreRouteImport } from './routes/_app.compliance.score'
 import { Route as AppComplianceReportsRouteImport } from './routes/_app.compliance.reports'
@@ -47,6 +50,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -109,6 +117,16 @@ const AppFunderInvitesRoute = AppFunderInvitesRouteImport.update({
   path: '/funder/invites',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFunderInviteRoute = AppFunderInviteRouteImport.update({
+  id: '/funder/invite',
+  path: '/funder/invite',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFunderDashboardRoute = AppFunderDashboardRouteImport.update({
+  id: '/funder/dashboard',
+  path: '/funder/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppComplianceVaultRoute = AppComplianceVaultRouteImport.update({
   id: '/compliance/vault',
   path: '/compliance/vault',
@@ -143,10 +161,13 @@ export interface FileRoutesByFullPath {
   '/users': typeof AppUsersRoute
   '/whatsapp': typeof AppWhatsappRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/compliance/calendar': typeof AppComplianceCalendarRoute
   '/compliance/reports': typeof AppComplianceReportsRoute
   '/compliance/score': typeof AppComplianceScoreRoute
   '/compliance/vault': typeof AppComplianceVaultRoute
+  '/funder/dashboard': typeof AppFunderDashboardRoute
+  '/funder/invite': typeof AppFunderInviteRoute
   '/funder/invites': typeof AppFunderInvitesRoute
   '/projects/$id': typeof AppProjectsIdRoute
   '/compliance/': typeof AppComplianceIndexRoute
@@ -164,10 +185,13 @@ export interface FileRoutesByTo {
   '/users': typeof AppUsersRoute
   '/whatsapp': typeof AppWhatsappRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/compliance/calendar': typeof AppComplianceCalendarRoute
   '/compliance/reports': typeof AppComplianceReportsRoute
   '/compliance/score': typeof AppComplianceScoreRoute
   '/compliance/vault': typeof AppComplianceVaultRoute
+  '/funder/dashboard': typeof AppFunderDashboardRoute
+  '/funder/invite': typeof AppFunderInviteRoute
   '/funder/invites': typeof AppFunderInvitesRoute
   '/projects/$id': typeof AppProjectsIdRoute
   '/compliance': typeof AppComplianceIndexRoute
@@ -187,10 +211,13 @@ export interface FileRoutesById {
   '/_app/users': typeof AppUsersRoute
   '/_app/whatsapp': typeof AppWhatsappRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/_app/compliance/calendar': typeof AppComplianceCalendarRoute
   '/_app/compliance/reports': typeof AppComplianceReportsRoute
   '/_app/compliance/score': typeof AppComplianceScoreRoute
   '/_app/compliance/vault': typeof AppComplianceVaultRoute
+  '/_app/funder/dashboard': typeof AppFunderDashboardRoute
+  '/_app/funder/invite': typeof AppFunderInviteRoute
   '/_app/funder/invites': typeof AppFunderInvitesRoute
   '/_app/projects/$id': typeof AppProjectsIdRoute
   '/_app/compliance/': typeof AppComplianceIndexRoute
@@ -210,10 +237,13 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/auth/callback'
+    | '/auth/reset-password'
     | '/compliance/calendar'
     | '/compliance/reports'
     | '/compliance/score'
     | '/compliance/vault'
+    | '/funder/dashboard'
+    | '/funder/invite'
     | '/funder/invites'
     | '/projects/$id'
     | '/compliance/'
@@ -231,10 +261,13 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/auth/callback'
+    | '/auth/reset-password'
     | '/compliance/calendar'
     | '/compliance/reports'
     | '/compliance/score'
     | '/compliance/vault'
+    | '/funder/dashboard'
+    | '/funder/invite'
     | '/funder/invites'
     | '/projects/$id'
     | '/compliance'
@@ -253,10 +286,13 @@ export interface FileRouteTypes {
     | '/_app/users'
     | '/_app/whatsapp'
     | '/auth/callback'
+    | '/auth/reset-password'
     | '/_app/compliance/calendar'
     | '/_app/compliance/reports'
     | '/_app/compliance/score'
     | '/_app/compliance/vault'
+    | '/_app/funder/dashboard'
+    | '/_app/funder/invite'
     | '/_app/funder/invites'
     | '/_app/projects/$id'
     | '/_app/compliance/'
@@ -268,6 +304,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -298,6 +335,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -384,6 +428,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFunderInvitesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/funder/invite': {
+      id: '/_app/funder/invite'
+      path: '/funder/invite'
+      fullPath: '/funder/invite'
+      preLoaderRoute: typeof AppFunderInviteRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/funder/dashboard': {
+      id: '/_app/funder/dashboard'
+      path: '/funder/dashboard'
+      fullPath: '/funder/dashboard'
+      preLoaderRoute: typeof AppFunderDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/compliance/vault': {
       id: '/_app/compliance/vault'
       path: '/compliance/vault'
@@ -440,6 +498,8 @@ interface AppRouteChildren {
   AppComplianceReportsRoute: typeof AppComplianceReportsRoute
   AppComplianceScoreRoute: typeof AppComplianceScoreRoute
   AppComplianceVaultRoute: typeof AppComplianceVaultRoute
+  AppFunderDashboardRoute: typeof AppFunderDashboardRoute
+  AppFunderInviteRoute: typeof AppFunderInviteRoute
   AppFunderInvitesRoute: typeof AppFunderInvitesRoute
   AppComplianceIndexRoute: typeof AppComplianceIndexRoute
 }
@@ -457,6 +517,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppComplianceReportsRoute: AppComplianceReportsRoute,
   AppComplianceScoreRoute: AppComplianceScoreRoute,
   AppComplianceVaultRoute: AppComplianceVaultRoute,
+  AppFunderDashboardRoute: AppFunderDashboardRoute,
+  AppFunderInviteRoute: AppFunderInviteRoute,
   AppFunderInvitesRoute: AppFunderInvitesRoute,
   AppComplianceIndexRoute: AppComplianceIndexRoute,
 }
@@ -469,16 +531,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
