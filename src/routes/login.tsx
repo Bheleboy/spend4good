@@ -135,6 +135,11 @@ function LoginPage() {
                 Get started
               </Link>
             </p>
+            <p className="mt-4 flex items-center justify-center gap-3 text-xs text-[oklch(0.35_0_0)]">
+              <Link to="/terms" className="hover:text-[oklch(0.8_0_0)]">Terms</Link>
+              <span>·</span>
+              <Link to="/privacy" className="hover:text-[oklch(0.8_0_0)]">Privacy</Link>
+            </p>
           </div>
         </div>
       </div>
