@@ -32,11 +32,6 @@ function LandingPage() {
           <span className="text-xl font-semibold tracking-tight">Spend4Good</span>
         </div>
         <div className="flex items-center gap-3">
-          <Link to="/onboarding" search={{ type: 'invited' }}>
-            <Button variant="ghost" className="text-[oklch(0.5_0_0)] hover:text-[oklch(0.8_0_0)] hover:bg-transparent text-sm">
-              I've been invited
-            </Button>
-          </Link>
           <Link to="/login">
             <Button variant="outline" className="border-[oklch(0.3_0_0)] bg-transparent text-[oklch(0.95_0_0)] hover:bg-[oklch(0.15_0_0)]">
               Sign In
