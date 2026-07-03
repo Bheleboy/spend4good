@@ -42,10 +42,6 @@ function LandingPage() {
 
       {/* Hero */}
       <section className="mx-auto max-w-5xl px-8 pb-20 pt-20 text-center md:px-16 md:pt-28">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] px-4 py-1.5 text-xs font-medium tracking-wide uppercase text-[oklch(0.6_0_0)]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.6_0.19_163)]" />
-          South African nonprofits only — global funders welcome
-        </div>
         <h1 className="mx-auto max-w-4xl text-5xl font-bold leading-[1.1] tracking-tight md:text-7xl">
           Built for South African nonprofits.
           <br />
