@@ -130,14 +130,8 @@ function OnboardingPage() {
     return (funderPlans[selectedPlan]?.id ?? 'funder_starter') as PlanId
   }
 
-  const handleInviteContinue = async () => {
-    if (invite) {
-      setStep(2)
-      return
-    }
-    if (!form.inviteCode.trim()) return
-    const info = await validateInvite(form.inviteCode.trim())
-    if (info) setStep(2)
+  const handleInviteContinue = () => {
+    if (invite) setStep(2)
   }
 
   const handleComplete = async () => {
@@ -164,12 +158,12 @@ function OnboardingPage() {
 
         const { data: accepted, error: acceptErr } = await supabase.functions.invoke('accept-invite', {
           body: {
-            token: invite.id ? form.inviteCode.trim() || token : token,
+            token: token,
             auth_user_id: authData.user.id,
             full_name: form.fullName,
             email: form.email,
             phone: form.phone,
-            country: form.country,
+            country: form.country ?? 'ZA',
           },
         })
         if (acceptErr || !(accepted as { ok?: boolean })?.ok) {
@@ -374,56 +368,64 @@ function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 1 - Invite code */}
+          {/* Step 1 - Invited flow (token from URL only) */}
           {step === 1 && type === 'invited' && (
             <div className="space-y-5">
-              <h2 className="text-lg font-semibold">
-                {invite ? "You're invited!" : 'Enter your invite code'}
-              </h2>
-
-              {!invite && !validatingInvite && (
-                <>
-                  <p className="text-sm text-[oklch(0.45_0_0)]">
-                    Your funder should have shared an invite link or code. Paste it below.
+              {!token && (
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold">Invite link required</h2>
+                  <p className="text-sm text-[oklch(0.6_0_0)]">
+                    This page requires a valid invite link. If you received an invite email, use the link from that email. Otherwise sign up here.
                   </p>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Invite Code</label>
-                    <Input
-                      value={form.inviteCode}
-                      onChange={(e) => update('inviteCode', e.target.value)}
-                      placeholder="Paste your invite token"
-                      className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)] text-center tracking-widest"
-                    />
-                  </div>
-                  {inviteError && (
-                    <p className="text-sm text-[oklch(0.65_0.2_25)]">{inviteError}</p>
-                  )}
-                </>
+                  <Link
+                    to="/onboarding"
+                    search={{ type: 'nonprofit' }}
+                    className="inline-block rounded-md bg-[oklch(0.95_0_0)] px-4 py-2 text-sm font-semibold text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)]"
+                  >
+                    Sign up as a nonprofit
+                  </Link>
+                </div>
               )}
 
-              {validatingInvite && (
+              {token && validatingInvite && (
                 <div className="flex items-center gap-2 text-sm text-[oklch(0.6_0_0)]">
                   <Loader2 className="h-4 w-4 animate-spin" /> Validating invitation…
                 </div>
               )}
 
+              {token && !validatingInvite && inviteError && !invite && (
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold">Invite link invalid</h2>
+                  <p className="text-sm text-[oklch(0.6_0_0)]">
+                    This invite link is invalid or has expired. Please contact the funder who invited you for a new link.
+                  </p>
+                  <Link
+                    to="/"
+                    className="inline-block rounded-md border border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] px-4 py-2 text-sm font-medium text-[oklch(0.9_0_0)] hover:bg-[oklch(0.12_0_0)]"
+                  >
+                    Back to homepage
+                  </Link>
+                </div>
+              )}
+
               {invite && (
                 <div className="space-y-4">
+                  <h2 className="text-lg font-semibold">You're invited!</h2>
+                  <div className="rounded-xl border border-[oklch(0.2_0_0)] bg-[oklch(0.06_0_0)] p-4 text-sm text-[oklch(0.8_0_0)]">
+                    <strong className="text-[oklch(0.95_0_0)]">{invite.funder_name ?? 'A funder on Spend4Good'}</strong> has invited your organisation to Spend4Good — your account is fully funded by them.
+                  </div>
                   <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-5">
-                    <p className="text-xs uppercase tracking-wide text-[oklch(0.4_0_0)]">Invited by</p>
-                    <p className="mt-1 text-base font-semibold text-[oklch(0.9_0_0)]">
-                      {invite.funder_name ?? 'A funder on Spend4Good'}
+                    <p className="text-xs uppercase tracking-wide text-[oklch(0.4_0_0)]">Your organisation</p>
+                    <p className="mt-1 text-base font-semibold text-[oklch(0.9_0_0)]">{invite.nonprofit_name}</p>
+                    <p className="text-xs text-[oklch(0.5_0_0)]">{invite.nonprofit_email}</p>
+                    <p className="mt-3 text-xs text-[oklch(0.5_0_0)]">
+                      You can edit the name or email on the next step if anything is wrong.
                     </p>
-                    <div className="mt-4 border-t border-[oklch(0.12_0_0)] pt-4">
-                      <p className="text-xs uppercase tracking-wide text-[oklch(0.4_0_0)]">Your organisation</p>
-                      <p className="mt-1 text-base font-semibold text-[oklch(0.9_0_0)]">{invite.nonprofit_name}</p>
-                      <p className="text-xs text-[oklch(0.5_0_0)]">{invite.nonprofit_email}</p>
-                    </div>
                   </div>
                   <div className="flex items-start gap-2 rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
                     <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[oklch(0.6_0.19_163)]" />
                     <p className="text-xs text-[oklch(0.45_0_0)]">
-                      Fully funded by your funder — no payment required, ever. Continue to set up your account.
+                      No payment required, ever. Continue to set up your account.
                     </p>
                   </div>
                 </div>

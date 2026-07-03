@@ -26,6 +26,8 @@ import { Route as AppBeneficiariesRouteImport } from './routes/_app.beneficiarie
 import { Route as AppComplianceIndexRouteImport } from './routes/_app.compliance.index'
 import { Route as AppProjectsIdRouteImport } from './routes/_app.projects.$id'
 import { Route as AppFunderInvitesRouteImport } from './routes/_app.funder.invites'
+import { Route as AppFunderInviteRouteImport } from './routes/_app.funder.invite'
+import { Route as AppFunderDashboardRouteImport } from './routes/_app.funder.dashboard'
 import { Route as AppComplianceVaultRouteImport } from './routes/_app.compliance.vault'
 import { Route as AppComplianceScoreRouteImport } from './routes/_app.compliance.score'
 import { Route as AppComplianceReportsRouteImport } from './routes/_app.compliance.reports'
@@ -115,6 +117,16 @@ const AppFunderInvitesRoute = AppFunderInvitesRouteImport.update({
   path: '/funder/invites',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFunderInviteRoute = AppFunderInviteRouteImport.update({
+  id: '/funder/invite',
+  path: '/funder/invite',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFunderDashboardRoute = AppFunderDashboardRouteImport.update({
+  id: '/funder/dashboard',
+  path: '/funder/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppComplianceVaultRoute = AppComplianceVaultRouteImport.update({
   id: '/compliance/vault',
   path: '/compliance/vault',
@@ -154,6 +166,8 @@ export interface FileRoutesByFullPath {
   '/compliance/reports': typeof AppComplianceReportsRoute
   '/compliance/score': typeof AppComplianceScoreRoute
   '/compliance/vault': typeof AppComplianceVaultRoute
+  '/funder/dashboard': typeof AppFunderDashboardRoute
+  '/funder/invite': typeof AppFunderInviteRoute
   '/funder/invites': typeof AppFunderInvitesRoute
   '/projects/$id': typeof AppProjectsIdRoute
   '/compliance/': typeof AppComplianceIndexRoute
@@ -176,6 +190,8 @@ export interface FileRoutesByTo {
   '/compliance/reports': typeof AppComplianceReportsRoute
   '/compliance/score': typeof AppComplianceScoreRoute
   '/compliance/vault': typeof AppComplianceVaultRoute
+  '/funder/dashboard': typeof AppFunderDashboardRoute
+  '/funder/invite': typeof AppFunderInviteRoute
   '/funder/invites': typeof AppFunderInvitesRoute
   '/projects/$id': typeof AppProjectsIdRoute
   '/compliance': typeof AppComplianceIndexRoute
@@ -200,6 +216,8 @@ export interface FileRoutesById {
   '/_app/compliance/reports': typeof AppComplianceReportsRoute
   '/_app/compliance/score': typeof AppComplianceScoreRoute
   '/_app/compliance/vault': typeof AppComplianceVaultRoute
+  '/_app/funder/dashboard': typeof AppFunderDashboardRoute
+  '/_app/funder/invite': typeof AppFunderInviteRoute
   '/_app/funder/invites': typeof AppFunderInvitesRoute
   '/_app/projects/$id': typeof AppProjectsIdRoute
   '/_app/compliance/': typeof AppComplianceIndexRoute
@@ -224,6 +242,8 @@ export interface FileRouteTypes {
     | '/compliance/reports'
     | '/compliance/score'
     | '/compliance/vault'
+    | '/funder/dashboard'
+    | '/funder/invite'
     | '/funder/invites'
     | '/projects/$id'
     | '/compliance/'
@@ -246,6 +266,8 @@ export interface FileRouteTypes {
     | '/compliance/reports'
     | '/compliance/score'
     | '/compliance/vault'
+    | '/funder/dashboard'
+    | '/funder/invite'
     | '/funder/invites'
     | '/projects/$id'
     | '/compliance'
@@ -269,6 +291,8 @@ export interface FileRouteTypes {
     | '/_app/compliance/reports'
     | '/_app/compliance/score'
     | '/_app/compliance/vault'
+    | '/_app/funder/dashboard'
+    | '/_app/funder/invite'
     | '/_app/funder/invites'
     | '/_app/projects/$id'
     | '/_app/compliance/'
@@ -404,6 +428,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFunderInvitesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/funder/invite': {
+      id: '/_app/funder/invite'
+      path: '/funder/invite'
+      fullPath: '/funder/invite'
+      preLoaderRoute: typeof AppFunderInviteRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/funder/dashboard': {
+      id: '/_app/funder/dashboard'
+      path: '/funder/dashboard'
+      fullPath: '/funder/dashboard'
+      preLoaderRoute: typeof AppFunderDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/compliance/vault': {
       id: '/_app/compliance/vault'
       path: '/compliance/vault'
@@ -460,6 +498,8 @@ interface AppRouteChildren {
   AppComplianceReportsRoute: typeof AppComplianceReportsRoute
   AppComplianceScoreRoute: typeof AppComplianceScoreRoute
   AppComplianceVaultRoute: typeof AppComplianceVaultRoute
+  AppFunderDashboardRoute: typeof AppFunderDashboardRoute
+  AppFunderInviteRoute: typeof AppFunderInviteRoute
   AppFunderInvitesRoute: typeof AppFunderInvitesRoute
   AppComplianceIndexRoute: typeof AppComplianceIndexRoute
 }
@@ -477,6 +517,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppComplianceReportsRoute: AppComplianceReportsRoute,
   AppComplianceScoreRoute: AppComplianceScoreRoute,
   AppComplianceVaultRoute: AppComplianceVaultRoute,
+  AppFunderDashboardRoute: AppFunderDashboardRoute,
+  AppFunderInviteRoute: AppFunderInviteRoute,
   AppFunderInvitesRoute: AppFunderInvitesRoute,
   AppComplianceIndexRoute: AppComplianceIndexRoute,
 }
