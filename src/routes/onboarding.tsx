@@ -515,7 +515,7 @@ function OnboardingPage() {
                   <PlanCard
                     key={plan.id}
                     name={plan.name}
-                    price={formatPrice(plan.priceUSD)}
+                    price={formatPriceLocalized(plan, isSA)}
                     desc={
                       plan.audience === 'funder'
                         ? plan.npoLimit === null
