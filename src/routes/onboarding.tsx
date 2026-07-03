@@ -520,7 +520,7 @@ function OnboardingPage() {
                   <Input
                     value={form.phone}
                     onChange={(e) => update('phone', e.target.value)}
-                    placeholder="+27821234567"
+                    placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
                     className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
                   />
                 </div>
