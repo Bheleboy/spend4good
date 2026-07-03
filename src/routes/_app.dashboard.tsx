@@ -177,9 +177,9 @@ function DashboardPage() {
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-foreground">Recent Activity</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">Latest document submissions</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Latest compliance documents</p>
             </div>
-            <Link to="/documents">
+            <Link to="/compliance/vault">
               <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
                 View all
               </Button>
@@ -208,11 +208,14 @@ function DashboardPage() {
                     <FileText className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">{doc.file_name}</p>
-                    <p className="text-xs text-muted-foreground">{doc.vendor_name}</p>
+                    <p className="truncate text-sm font-medium text-foreground">{doc.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {doc.category}
+                      {doc.expiry_date ? ` · expires ${new Date(doc.expiry_date).toLocaleDateString()}` : ''}
+                    </p>
                   </div>
                   <Badge className={`shrink-0 text-[10px] ${statusColors[doc.status] || ''}`}>
-                    {doc.status}
+                    {statusLabels[doc.status] || doc.status}
                   </Badge>
                 </div>
               ))
