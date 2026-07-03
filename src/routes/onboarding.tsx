@@ -191,7 +191,7 @@ function OnboardingPage() {
           console.warn('welcome email failed', e)
         }
 
-        toast.success('Welcome to Spend4Good! Please confirm your email, then sign in.')
+        toast.success('Account created! Check your email to confirm, then sign in.')
         navigate({ to: '/login' })
         return
       }
@@ -462,15 +462,14 @@ function OnboardingPage() {
                       onChange={(e) => update('email', e.target.value)}
                       placeholder="you@organization.co.za"
                       type="email"
-                      readOnly={!!invite}
                       className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
                     />
                   </div>
-                  {invite && (
-                    <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">
-                      Locked to the address your funder invited.
-                    </p>
-                  )}
+                  <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">
+                    Pre-filled from your invitation — edit if needed.
+                  </p>
+                </div>
+              )}
                 </div>
               )}
               <div>
