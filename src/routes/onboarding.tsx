@@ -470,8 +470,6 @@ function OnboardingPage() {
                   </p>
                 </div>
               )}
-                </div>
-              )}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
                 <div className="relative">
