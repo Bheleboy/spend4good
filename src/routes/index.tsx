@@ -57,7 +57,7 @@ function LandingPage() {
           <span className="text-[oklch(0.5_0_0)]">Track spend. Stay compliant.</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[oklch(0.5_0_0)]">
-          Spend4Good is the only platform built specifically for DSD reporting, CIPC compliance, and WhatsApp-based field submissions. Trusted by nonprofits and funders across all nine provinces.
+          Spend4Good is built specifically for DSD reporting, CIPC compliance, and WhatsApp-based field submissions across all nine provinces.
         </p>
       </section>
 
@@ -136,35 +136,6 @@ function LandingPage() {
               </div>
               <h3 className="text-base font-semibold">{f.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-[oklch(0.45_0_0)]">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="mx-auto h-px max-w-4xl bg-gradient-to-r from-transparent via-[oklch(0.2_0_0)] to-transparent" />
-
-      {/* Trusted by SA nonprofits */}
-      <section className="mx-auto max-w-4xl px-8 py-24 text-center md:px-16">
-        <p className="text-xs font-medium tracking-widest uppercase text-[oklch(0.4_0_0)]">
-          Trusted by SA nonprofits
-        </p>
-        <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
-          Built by South Africans, for South Africans
-        </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[oklch(0.55_0_0)]">
-          Spend4Good is designed around DSD requirements, CIPC regulations, and the reality of field work across all nine provinces.
-        </p>
-
-        <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3">
-          {[
-            { stat: '9 Provinces', label: 'Country-wide coverage' },
-            { stat: 'DSD-aligned', label: 'Narrative report ready' },
-            { stat: 'POPIA-compliant', label: 'Data stays protected' },
-          ].map((s) => (
-            <div key={s.stat} className="rounded-2xl border border-[oklch(0.12_0_0)] bg-[oklch(0.06_0_0)] p-6">
-              <div className="text-2xl font-bold text-[oklch(0.95_0_0)]">{s.stat}</div>
-              <p className="mt-1 text-xs text-[oklch(0.5_0_0)]">{s.label}</p>
             </div>
           ))}
         </div>
