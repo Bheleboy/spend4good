@@ -94,8 +94,6 @@ function LandingPage() {
             </div>
           </Link>
         </div>
-
-        </div>
       </section>
 
       {/* Divider */}
