@@ -24,7 +24,7 @@ const monthlyData = [
 
 function DashboardPage() {
   const { user, can } = useAuth()
-  const [metrics, setMetrics] = useState({ projects: 0, pending: 0, totalSpent: 0, activeUsers: 0 })
+  const [metrics, setMetrics] = useState({ projects: 0, pending: 0, docsCount: 0, activeUsers: 0 })
   const [recentDocs, setRecentDocs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -32,18 +32,17 @@ function DashboardPage() {
     if (!user) return
     const load = async () => {
       const orgId = user.org_id
-      const [projRes, pendRes, approvedRes, usersRes, docsRes] = await Promise.all([
+      const [projRes, pendRes, docsCountRes, usersRes, docsRes] = await Promise.all([
         supabase.from('projects').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'active'),
-        supabase.from('documents').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'pending'),
-        supabase.from('documents').select('amount').eq('org_id', orgId).eq('status', 'approved'),
+        supabase.from('expenses').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'pending'),
+        supabase.from('compliance_documents').select('*', { count: 'exact', head: true }).eq('org_id', orgId),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('is_active', true),
-        supabase.from('documents').select('*, projects(name), users!documents_uploaded_by_fkey(full_name)').eq('org_id', orgId).order('created_at', { ascending: false }).limit(10),
+        supabase.from('compliance_documents').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(10),
       ])
-      const totalSpent = approvedRes.data?.reduce((s: number, d: any) => s + (d.amount || 0), 0) || 0
       setMetrics({
         projects: projRes.count || 0,
         pending: pendRes.count || 0,
-        totalSpent,
+        docsCount: docsCountRes.count || 0,
         activeUsers: usersRes.count || 0,
       })
       setRecentDocs(docsRes.data || [])
@@ -54,16 +53,22 @@ function DashboardPage() {
 
   const cards = [
     { label: 'Active Projects', value: metrics.projects, icon: FolderKanban, trend: '+2 this month', up: true },
-    { label: 'Pending Approvals', value: metrics.pending, icon: Clock, trend: '3 urgent', up: false },
-    { label: 'Approved Expenses', value: `R ${metrics.totalSpent.toLocaleString()}`, icon: DollarSign, trend: '+12% vs last month', up: true },
+    { label: 'Pending Approvals', value: metrics.pending, icon: Clock, trend: 'expense reviews', up: false },
+    { label: 'Documents in Vault', value: metrics.docsCount, icon: DollarSign, trend: 'compliance docs', up: true },
     { label: 'Active Users', value: metrics.activeUsers, icon: Users, trend: 'All active', up: true },
   ]
 
   const statusColors: Record<string, string> = {
-    pending: 'bg-warning/15 text-warning border border-warning/20',
-    approved: 'bg-success/15 text-success border border-success/20',
-    rejected: 'bg-destructive/15 text-destructive border border-destructive/20',
+    current: 'bg-success/15 text-success border border-success/20',
+    expiring_soon: 'bg-warning/15 text-warning border border-warning/20',
+    expired: 'bg-destructive/15 text-destructive border border-destructive/20',
   }
+  const statusLabels: Record<string, string> = {
+    current: 'Current',
+    expiring_soon: 'Expiring soon',
+    expired: 'Expired',
+  }
+
 
   const greeting = () => {
     const hour = new Date().getHours()
