@@ -52,7 +52,7 @@ function OnboardingPage() {
     fullName: '',
     email: '',
     password: '',
-    phone: '+27',
+    phone: '',
     inviteCode: token ?? '',
     country: 'ZA',
   })
