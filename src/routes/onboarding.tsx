@@ -6,8 +6,11 @@ import { Card } from '@/components/ui/card'
 import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, Lock, CheckCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { signUpWithPassword } from '@/lib/auth'
-import { plansForAudience, formatPrice, type PlanId } from '@/lib/pricing'
+import { plansForAudience, formatPriceLocalized, type PlanId } from '@/lib/pricing'
+import { useCountry } from '@/hooks/use-country'
+import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
+
 
 type OnboardingType = 'funder' | 'nonprofit' | 'invited'
 
@@ -38,8 +41,10 @@ interface InviteInfo {
 function OnboardingPage() {
   const { type, token } = Route.useSearch()
   const navigate = useNavigate()
+  const { isSA } = useCountry()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
+
   const [selectedPlan, setSelectedPlan] = useState(0)
   const [invite, setInvite] = useState<InviteInfo | null>(null)
   const [inviteError, setInviteError] = useState<string | null>(null)
@@ -49,7 +54,7 @@ function OnboardingPage() {
     fullName: '',
     email: '',
     password: '',
-    phone: '+27',
+    phone: '',
     inviteCode: token ?? '',
     country: 'ZA',
   })
@@ -117,11 +122,13 @@ function OnboardingPage() {
   const canNext = () => {
     if (step === 1) {
       if (type === 'invited') return !!invite
-      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7
+      if (type === 'nonprofit' && form.country !== 'ZA') return false
+      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7 && !!form.country
     }
     if (step === 2) return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
     return true
   }
+
 
   const planFor = (): PlanId | 'invited_free' => {
     if (type === 'invited') return 'invited_free'
@@ -342,19 +349,54 @@ function OnboardingPage() {
                 </div>
               </div>
               <div>
+                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Country</label>
+                <select
+                  value={form.country}
+                  onChange={(e) => update('country', e.target.value)}
+                  className="h-10 w-full rounded-md border border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] px-3 text-sm text-[oklch(0.95_0_0)] focus:outline-none focus:ring-2 focus:ring-[oklch(0.3_0_0)]"
+                >
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.code}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
                   <Input
                     value={form.phone}
                     onChange={(e) => update('phone', e.target.value)}
-                    placeholder="+27821234567"
+                    placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
                     className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
                   />
                 </div>
                 <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">Linked to your WhatsApp for document submissions</p>
               </div>
-              {type === 'nonprofit' && (
+              {type === 'nonprofit' && form.country !== 'ZA' && (
+                <div className="rounded-xl border border-[oklch(0.2_0.05_60)] bg-[oklch(0.08_0.02_60)] p-4 space-y-3">
+                  <p className="text-sm text-[oklch(0.85_0_0)]">
+                    Spend4Good's SA Compliance Pack is currently available for South African nonprofits only. International funders can sign up and invite SA-based grantees.
+                  </p>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Link
+                      to="/waitlist"
+                      search={{ country: form.country }}
+                      className="inline-flex items-center justify-center rounded-md bg-[oklch(0.95_0_0)] px-3 py-2 text-xs font-semibold text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)]"
+                    >
+                      Join the waitlist for {COUNTRIES.find((c) => c.code === form.country)?.name ?? form.country}
+                    </Link>
+                    <Link
+                      to="/onboarding"
+                      search={{ type: 'funder' }}
+                      className="inline-flex items-center justify-center rounded-md border border-[oklch(0.25_0_0)] bg-transparent px-3 py-2 text-xs font-medium text-[oklch(0.9_0_0)] hover:bg-[oklch(0.12_0_0)]"
+                    >
+                      I'm registering as a funder instead
+                    </Link>
+                  </div>
+                </div>
+              )}
+              {type === 'nonprofit' && form.country === 'ZA' && (
                 <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
                   <p className="text-xs text-[oklch(0.45_0_0)]">
                     <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — 14-day free trial on any plan. If you were invited by a funder,{' '}
@@ -365,6 +407,7 @@ function OnboardingPage() {
                   </p>
                 </div>
               )}
+
             </div>
           )}
 
@@ -477,7 +520,7 @@ function OnboardingPage() {
                   <Input
                     value={form.phone}
                     onChange={(e) => update('phone', e.target.value)}
-                    placeholder="+27821234567"
+                    placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
                     className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
                   />
                 </div>
@@ -512,7 +555,7 @@ function OnboardingPage() {
                   <PlanCard
                     key={plan.id}
                     name={plan.name}
-                    price={formatPrice(plan.priceUSD)}
+                    price={formatPriceLocalized(plan, isSA)}
                     desc={
                       plan.audience === 'funder'
                         ? plan.npoLimit === null

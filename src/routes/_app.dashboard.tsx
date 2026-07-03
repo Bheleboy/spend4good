@@ -158,7 +158,7 @@ function DashboardPage() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
               <XAxis dataKey="month" stroke="var(--color-muted-foreground)" fontSize={12} axisLine={false} tickLine={false} />
-              <YAxis stroke="var(--color-muted-foreground)" fontSize={12} axisLine={false} tickLine={false} tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`} />
+              <YAxis stroke="var(--color-muted-foreground)" fontSize={12} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: 'var(--color-card)',

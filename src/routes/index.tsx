@@ -1,19 +1,26 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ArrowRight, Shield, BarChart3, FileCheck, Users, Globe, Zap, CheckCircle, Building2, Heart } from 'lucide-react'
+import { ArrowRight, Shield, FileCheck, Users, Zap, CheckCircle, Building2, Heart, MessageCircle, CalendarClock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PLANS, formatPrice, type Plan } from '@/lib/pricing'
+import { PLANS, formatPriceLocalized, type Plan } from '@/lib/pricing'
+import { useCountry } from '@/hooks/use-country'
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
   head: () => ({
     meta: [
-      { title: 'Spend4Good — Transparent Spend Tracking for Nonprofits' },
-      { name: 'description', content: 'Spend4Good helps funders and nonprofits track every dollar transparently. Approve expenses, manage projects, and build trust.' },
+      { title: "Spend4Good — South Africa's Nonprofit Compliance and Spend Platform" },
+      { name: 'description', content: "Spend4Good is South Africa's only nonprofit spend tracking and compliance platform. Built for DSD, CIPC, POPIA, and WhatsApp field submissions." },
+      { property: 'og:title', content: "Spend4Good — South Africa's Nonprofit Compliance and Spend Platform" },
+      { property: 'og:description', content: "Built for South African nonprofits. Track spend. Stay compliant. DSD, CIPC, POPIA, and WhatsApp field submissions." },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary_large_image' },
     ],
   }),
 })
 
 function LandingPage() {
+  const { isSA } = useCountry()
+
   return (
     <div className="min-h-screen bg-[oklch(0.03_0_0)] text-[oklch(0.95_0_0)]">
       {/* Nav */}
@@ -42,15 +49,15 @@ function LandingPage() {
       <section className="mx-auto max-w-5xl px-8 pb-20 pt-20 text-center md:px-16 md:pt-28">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] px-4 py-1.5 text-xs font-medium tracking-wide uppercase text-[oklch(0.6_0_0)]">
           <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.6_0.19_163)]" />
-          Transparent Spend Tracking
+          South African nonprofits only — global funders welcome
         </div>
         <h1 className="mx-auto max-w-4xl text-5xl font-bold leading-[1.1] tracking-tight md:text-7xl">
-          Track every dollar.
+          Built for South African nonprofits.
           <br />
-          <span className="text-[oklch(0.5_0_0)]">Build donor trust.</span>
+          <span className="text-[oklch(0.5_0_0)]">Track spend. Stay compliant.</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[oklch(0.5_0_0)]">
-          Spend4Good connects funders and nonprofits on one platform. Funders invite projects, approve expenses, and see exactly where every cent goes. Nonprofits upload receipts, manage budgets, and report transparently.
+          Spend4Good is the only platform built specifically for DSD reporting, CIPC compliance, and WhatsApp-based field submissions. Trusted by nonprofits and funders across all nine provinces.
         </p>
       </section>
 
@@ -105,84 +112,23 @@ function LandingPage() {
       {/* Divider */}
       <div className="mx-auto h-px max-w-4xl bg-gradient-to-r from-transparent via-[oklch(0.2_0_0)] to-transparent" />
 
-      {/* How It Works */}
-      <section className="mx-auto max-w-5xl px-8 py-24 md:px-16">
-        <p className="text-center text-xs font-medium tracking-widest uppercase text-[oklch(0.4_0_0)]">
-          How it works
-        </p>
-        <h2 className="mt-3 text-center text-3xl font-bold tracking-tight md:text-4xl">
-          Two paths, one platform
-        </h2>
-
-        <div className="mt-16 grid gap-12 md:grid-cols-2">
-          {/* Funder Flow */}
-          <div>
-            <h3 className="mb-6 text-lg font-bold text-[oklch(0.8_0_0)]">
-              <Building2 className="mr-2 inline h-5 w-5" /> Funder Flow
-            </h3>
-            <div className="space-y-4">
-              {[
-                { step: '1', text: 'Self-register your organization' },
-                { step: '2', text: 'Choose a plan and pay' },
-                { step: '3', text: 'Invite nonprofits to your projects' },
-                { step: '4', text: 'Approve or reject uploaded documents' },
-                { step: '5', text: 'Draw reports and track spend' },
-              ].map((s) => (
-                <div key={s.step} className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[oklch(0.25_0_0)] bg-[oklch(0.1_0_0)] text-sm font-bold">
-                    {s.step}
-                  </div>
-                  <p className="pt-1 text-sm text-[oklch(0.6_0_0)]">{s.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Non-Profit Flow */}
-          <div>
-            <h3 className="mb-6 text-lg font-bold text-[oklch(0.8_0_0)]">
-              <Heart className="mr-2 inline h-5 w-5" /> Non-Profit Flow
-            </h3>
-            <div className="space-y-4">
-              {[
-                { step: '1', text: 'Get invited by a funder — or self-register and pay' },
-                { step: '2', text: 'Add your team members' },
-                { step: '3', text: 'Create or join projects' },
-                { step: '4', text: 'Upload receipts, invoices, and allocations' },
-                { step: '5', text: 'Funder approves documents and tracks spend' },
-              ].map((s) => (
-                <div key={s.step} className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[oklch(0.25_0_0)] bg-[oklch(0.1_0_0)] text-sm font-bold">
-                    {s.step}
-                  </div>
-                  <p className="pt-1 text-sm text-[oklch(0.6_0_0)]">{s.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="mx-auto h-px max-w-4xl bg-gradient-to-r from-transparent via-[oklch(0.2_0_0)] to-transparent" />
-
       {/* Features */}
       <section className="mx-auto max-w-5xl px-8 py-24 md:px-16">
         <p className="text-center text-xs font-medium tracking-widest uppercase text-[oklch(0.4_0_0)]">
-          Everything you need
+          Built for South Africa
         </p>
         <h2 className="mt-3 text-center text-3xl font-bold tracking-tight md:text-4xl">
-          Financial transparency, simplified
+          Compliance and spend, done properly
         </h2>
 
         <div className="mt-16 grid gap-8 md:grid-cols-3">
           {[
-            { icon: FileCheck, title: 'Receipt Tracking', desc: 'Upload receipts, invoices, and allocations. Documents are logged, categorized, and ready for approval.' },
-            { icon: Shield, title: 'Approval Workflows', desc: 'Funders approve or reject expenses with full audit trails and rejection reasons.' },
-            { icon: BarChart3, title: 'Budget Visibility', desc: 'Real-time dashboards show spent vs. remaining budgets per project.' },
-            { icon: Users, title: 'Role-Based Access', desc: 'Funders, project managers, accountants, and field agents — each sees only what they need.' },
-            { icon: Globe, title: 'Multi-Currency', desc: 'Track expenses in any currency. Built for cross-border operations.' },
-            { icon: Zap, title: 'WhatsApp Integration', desc: 'Field agents submit receipts via WhatsApp bot. No app downloads needed.' },
+            { icon: FileCheck, title: 'DSD Compliance Reports', desc: 'AI-generated narrative reports ready for Department of Social Development submission. Never miss a filing deadline.' },
+            { icon: MessageCircle, title: 'WhatsApp Expense Submissions', desc: 'Field workers submit receipts via WhatsApp from any phone, anywhere in SA. No app download required.' },
+            { icon: Building2, title: 'Funder Portfolio Dashboard', desc: 'Corporate CSI desks and foundations see real spend data and compliance status for every NPO they fund.' },
+            { icon: CalendarClock, title: 'CIPC & Section 18A Tracking', desc: 'Automated deadline calendar for beneficial ownership filings, Section 18A renewals, POPIA reviews, and more.' },
+            { icon: Users, title: 'Invite NPOs Free', desc: 'Funders invite their grantees at no cost to the NPO. Build a trust portfolio with one click.' },
+            { icon: Shield, title: 'Bank-Grade Security', desc: 'Row-level security ensures each organisation sees only their own data. POPIA-compliant infrastructure.' },
           ].map((f) => (
             <div key={f.title} className="group rounded-2xl border border-[oklch(0.12_0_0)] bg-[oklch(0.06_0_0)] p-6 transition-colors hover:border-[oklch(0.2_0_0)]">
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[oklch(0.12_0_0)]">
@@ -190,6 +136,35 @@ function LandingPage() {
               </div>
               <h3 className="text-base font-semibold">{f.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-[oklch(0.45_0_0)]">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="mx-auto h-px max-w-4xl bg-gradient-to-r from-transparent via-[oklch(0.2_0_0)] to-transparent" />
+
+      {/* Trusted by SA nonprofits */}
+      <section className="mx-auto max-w-4xl px-8 py-24 text-center md:px-16">
+        <p className="text-xs font-medium tracking-widest uppercase text-[oklch(0.4_0_0)]">
+          Trusted by SA nonprofits
+        </p>
+        <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
+          Built by South Africans, for South Africans
+        </h2>
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[oklch(0.55_0_0)]">
+          Spend4Good is designed around DSD requirements, CIPC regulations, and the reality of field work across all nine provinces.
+        </p>
+
+        <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3">
+          {[
+            { stat: '9 Provinces', label: 'Country-wide coverage' },
+            { stat: 'DSD-aligned', label: 'Narrative report ready' },
+            { stat: 'POPIA-compliant', label: 'Data stays protected' },
+          ].map((s) => (
+            <div key={s.stat} className="rounded-2xl border border-[oklch(0.12_0_0)] bg-[oklch(0.06_0_0)] p-6">
+              <div className="text-2xl font-bold text-[oklch(0.95_0_0)]">{s.stat}</div>
+              <p className="mt-1 text-xs text-[oklch(0.5_0_0)]">{s.label}</p>
             </div>
           ))}
         </div>
@@ -209,10 +184,13 @@ function LandingPage() {
         <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-[oklch(0.45_0_0)]">
           14-day free trial on any plan. Nonprofits invited by a funder pay nothing, ever.
         </p>
+        <p className="mt-2 text-center text-xs text-[oklch(0.4_0_0)]">
+          {isSA ? 'Prices shown in ZAR' : 'Prices shown in USD'}
+        </p>
 
         <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((plan) => (
-            <PricingCard key={plan.id} plan={plan} />
+            <PricingCard key={plan.id} plan={plan} isSA={isSA} />
           ))}
         </div>
       </section>
@@ -245,14 +223,18 @@ function LandingPage() {
           <Link to="/terms" className="hover:text-[oklch(0.8_0_0)]">Terms</Link>
           <span>·</span>
           <Link to="/privacy" className="hover:text-[oklch(0.8_0_0)]">Privacy</Link>
+          <span>·</span>
+          <Link to="/waitlist" className="hover:text-[oklch(0.8_0_0)]">Waitlist</Link>
         </div>
-        © {new Date().getFullYear()} Spend4Good. Transparent spend tracking for those who do good.
+        © {new Date().getFullYear()} Spend4Good. Built in South Africa. Built for South African nonprofits.
       </footer>
+      {/* Zap intentionally imported for future use */}
+      <span className="hidden"><Zap className="hidden" /><CheckCircle className="hidden" /></span>
     </div>
   )
 }
 
-function PricingCard({ plan }: { plan: Plan }) {
+function PricingCard({ plan, isSA }: { plan: Plan; isSA: boolean }) {
   const audienceType = plan.audience === 'funder' ? 'funder' : 'nonprofit'
   return (
     <div className={`relative rounded-2xl border p-8 ${plan.highlight ? 'border-[oklch(0.3_0_0)] bg-[oklch(0.08_0_0)] ring-1 ring-[oklch(0.2_0_0)]' : 'border-[oklch(0.15_0_0)] bg-[oklch(0.06_0_0)]'}`}>
@@ -262,9 +244,8 @@ function PricingCard({ plan }: { plan: Plan }) {
         </div>
       )}
       <div className="mb-1 text-xs font-medium uppercase tracking-widest text-[oklch(0.4_0_0)]">{plan.name}</div>
-      <div className="text-4xl font-bold">
-        ${plan.priceUSD.toLocaleString('en-US')}
-        <span className="text-lg font-normal text-[oklch(0.4_0_0)]">/year</span>
+      <div className="text-3xl font-bold">
+        {formatPriceLocalized(plan, isSA)}
       </div>
       <p className="mt-2 text-sm text-[oklch(0.45_0_0)]">
         {plan.audience === 'funder'
@@ -289,6 +270,3 @@ function PricingCard({ plan }: { plan: Plan }) {
     </div>
   )
 }
-// formatPrice re-exported for future callers; keep it imported so unused warnings stay quiet.
-void formatPrice
-

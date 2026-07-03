@@ -108,3 +108,16 @@ export function getPlan(id: PlanId): Plan | undefined {
 export function plansForAudience(audience: 'nonprofit' | 'funder'): Plan[] {
   return PLANS.filter((p) => p.audience === audience)
 }
+
+export const ZAR_PRICES: Record<PlanId, number> = {
+  nonprofit_starter: 2490,
+  funder_starter: 17900,
+  funder_growth: 35900,
+  funder_unlimited: 62900,
+}
+
+export function formatPriceLocalized(plan: Plan, isSA: boolean): string {
+  if (isSA) return `R${ZAR_PRICES[plan.id].toLocaleString('en-ZA')}/year`
+  return `$${plan.priceUSD.toLocaleString('en-US')}/year`
+}
+
