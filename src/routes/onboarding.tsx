@@ -553,7 +553,7 @@ function OnboardingPage() {
                 onClick={type === 'invited' && step === 1 ? handleInviteContinue : () => setStep((s) => s + 1)}
                 disabled={
                   type === 'invited' && step === 1
-                    ? validatingInvite || (!invite && form.inviteCode.trim().length < 4)
+                    ? validatingInvite || !invite
                     : !canNext()
                 }
                 className="bg-[oklch(0.95_0_0)] text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)] font-semibold px-6"
