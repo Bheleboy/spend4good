@@ -95,12 +95,6 @@ function LandingPage() {
           </Link>
         </div>
 
-        <div className="mt-6 text-center">
-          <Link to="/onboarding" search={{ type: 'invited' }}>
-            <Button variant="ghost" className="text-[oklch(0.5_0_0)] hover:text-[oklch(0.8_0_0)] hover:bg-transparent text-sm underline underline-offset-4">
-              Been invited by a funder? Click here →
-            </Button>
-          </Link>
         </div>
       </section>
 
