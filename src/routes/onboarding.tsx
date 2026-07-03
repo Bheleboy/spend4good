@@ -41,8 +41,10 @@ interface InviteInfo {
 function OnboardingPage() {
   const { type, token } = Route.useSearch()
   const navigate = useNavigate()
+  const { isSA } = useCountry()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
+
   const [selectedPlan, setSelectedPlan] = useState(0)
   const [invite, setInvite] = useState<InviteInfo | null>(null)
   const [inviteError, setInviteError] = useState<string | null>(null)
