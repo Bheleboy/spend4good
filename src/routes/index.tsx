@@ -241,6 +241,11 @@ function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-[oklch(0.12_0_0)] px-8 py-8 text-center text-xs text-[oklch(0.35_0_0)]">
+        <div className="mb-2 flex items-center justify-center gap-4">
+          <Link to="/terms" className="hover:text-[oklch(0.8_0_0)]">Terms</Link>
+          <span>·</span>
+          <Link to="/privacy" className="hover:text-[oklch(0.8_0_0)]">Privacy</Link>
+        </div>
         © {new Date().getFullYear()} Spend4Good. Transparent spend tracking for those who do good.
       </footer>
     </div>
