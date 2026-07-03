@@ -283,6 +283,51 @@ function OnboardingPage() {
   }
 
 
+  // ==== Invited flow: full-screen block when token missing OR invalid ====
+  if (type === 'invited') {
+    const showMissingToken = !token
+    const showInvalidToken = !!token && !validatingInvite && !invite && !!inviteError
+    if (showMissingToken || showInvalidToken) {
+      const heading = showMissingToken ? 'Invalid invite link' : 'This invite link is no longer valid'
+      const body = showMissingToken
+        ? 'This page requires a valid invite link from a funder. If you received an invite email, please use the link in that email. If you believe this is an error, contact the funder who invited you.'
+        : 'This invite may have expired (links are valid for 14 days) or has already been used. Contact the funder who invited you for a new invite link.'
+      return (
+        <div className="flex min-h-screen flex-col bg-[oklch(0.03_0_0)] text-[oklch(0.95_0_0)]">
+          <nav className="flex items-center justify-between px-8 py-6 md:px-16">
+            <Link to="/" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4 text-[oklch(0.5_0_0)]" />
+              <span className="text-sm text-[oklch(0.5_0_0)]">Back</span>
+            </Link>
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[oklch(0.95_0_0)]">
+                <span className="text-xs font-black text-[oklch(0.03_0_0)]">S4</span>
+              </div>
+              <span className="text-sm font-semibold">Spend4Good</span>
+            </div>
+          </nav>
+          <div className="flex flex-1 items-center justify-center px-4 py-12">
+            <Card className="w-full max-w-lg border-[oklch(0.15_0_0)] bg-[oklch(0.06_0_0)] p-8 text-center md:p-10">
+              <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[oklch(0.15_0_0)]">
+                <Heart className="h-5 w-5 text-[oklch(0.7_0_0)]" />
+              </div>
+              <h1 className="text-2xl font-bold">{heading}</h1>
+              <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-[oklch(0.55_0_0)]">
+                {body}
+              </p>
+              <Link
+                to="/"
+                className="mt-8 inline-flex items-center justify-center rounded-md bg-[oklch(0.95_0_0)] px-5 py-2.5 text-sm font-semibold text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)]"
+              >
+                Go to homepage
+              </Link>
+            </Card>
+          </div>
+        </div>
+      )
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-[oklch(0.03_0_0)] text-[oklch(0.95_0_0)]">
       {/* Top bar */}
@@ -399,11 +444,7 @@ function OnboardingPage() {
               {type === 'nonprofit' && form.country === 'ZA' && (
                 <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
                   <p className="text-xs text-[oklch(0.45_0_0)]">
-                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — 14-day free trial on any plan. If you were invited by a funder,{' '}
-                    <Link to="/onboarding" search={{ type: 'invited' }} className="underline text-[oklch(0.7_0_0)]">
-                      click here instead
-                    </Link>{' '}
-                    — invited nonprofits pay nothing, ever.
+                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — 14-day free trial on any plan. Nonprofits invited by a funder receive a private invite email; no self-serve invited signup.
                   </p>
                 </div>
               )}
@@ -411,43 +452,12 @@ function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 1 - Invited flow (token from URL only) */}
+          {/* Step 1 - Invited flow (token validated upstream) */}
           {step === 1 && type === 'invited' && (
             <div className="space-y-5">
-              {!token && (
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Invite link required</h2>
-                  <p className="text-sm text-[oklch(0.6_0_0)]">
-                    This page requires a valid invite link. If you received an invite email, use the link from that email. Otherwise sign up here.
-                  </p>
-                  <Link
-                    to="/onboarding"
-                    search={{ type: 'nonprofit' }}
-                    className="inline-block rounded-md bg-[oklch(0.95_0_0)] px-4 py-2 text-sm font-semibold text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)]"
-                  >
-                    Sign up as a nonprofit
-                  </Link>
-                </div>
-              )}
-
-              {token && validatingInvite && (
+              {validatingInvite && (
                 <div className="flex items-center gap-2 text-sm text-[oklch(0.6_0_0)]">
                   <Loader2 className="h-4 w-4 animate-spin" /> Validating invitation…
-                </div>
-              )}
-
-              {token && !validatingInvite && inviteError && !invite && (
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Invite link invalid</h2>
-                  <p className="text-sm text-[oklch(0.6_0_0)]">
-                    This invite link is invalid or has expired. Please contact the funder who invited you for a new link.
-                  </p>
-                  <Link
-                    to="/"
-                    className="inline-block rounded-md border border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] px-4 py-2 text-sm font-medium text-[oklch(0.9_0_0)] hover:bg-[oklch(0.12_0_0)]"
-                  >
-                    Back to homepage
-                  </Link>
                 </div>
               )}
 
@@ -455,7 +465,7 @@ function OnboardingPage() {
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold">You're invited!</h2>
                   <div className="rounded-xl border border-[oklch(0.2_0_0)] bg-[oklch(0.06_0_0)] p-4 text-sm text-[oklch(0.8_0_0)]">
-                    <strong className="text-[oklch(0.95_0_0)]">{invite.funder_name ?? 'A funder on Spend4Good'}</strong> has invited your organisation to Spend4Good — your account is fully funded by them.
+                    <strong className="text-[oklch(0.95_0_0)]">{invite.funder_name ?? 'A funder on Spend4Good'}</strong> has invited your organisation to Spend4Good.
                   </div>
                   <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-5">
                     <p className="text-xs uppercase tracking-wide text-[oklch(0.4_0_0)]">Your organisation</p>
@@ -468,7 +478,7 @@ function OnboardingPage() {
                   <div className="flex items-start gap-2 rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
                     <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[oklch(0.6_0.19_163)]" />
                     <p className="text-xs text-[oklch(0.45_0_0)]">
-                      No payment required, ever. Continue to set up your account.
+                      Your account is fully funded by {invite.funder_name ?? 'your funder'}, no payment required.
                     </p>
                   </div>
                 </div>
