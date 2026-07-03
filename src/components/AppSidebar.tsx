@@ -21,13 +21,19 @@ const sections: NavSection[] = [
       { to: '/documents', label: 'Documents', icon: FileText },
       { to: '/expenses', label: 'Expenses', icon: Receipt },
       { to: '/whatsapp', label: 'WhatsApp Log', icon: MessageCircle },
-      { to: '/funder/invites', label: 'Invite NPO', icon: Mail, funderAdminOnly: true },
       { to: '/users', label: 'Users', icon: Users, adminOnly: true },
       { to: '/settings', label: 'Settings', icon: Settings },
     ],
   },
   {
-    label: 'Compliance OS',
+    label: 'Funder',
+    items: [
+      { to: '/funder/dashboard', label: 'Portfolio', icon: LayoutDashboard, funderAdminOnly: true },
+      { to: '/funder/invite', label: 'Invite Nonprofits', icon: Mail, funderAdminOnly: true },
+    ],
+  },
+  {
+    label: 'South African Compliance Pack',
     badge: 'NEW',
     items: [
       { to: '/compliance', label: 'Compliance Dashboard', icon: ShieldCheck },
