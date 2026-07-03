@@ -122,11 +122,13 @@ function OnboardingPage() {
   const canNext = () => {
     if (step === 1) {
       if (type === 'invited') return !!invite
-      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7
+      if (type === 'nonprofit' && form.country !== 'ZA') return false
+      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7 && !!form.country
     }
     if (step === 2) return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
     return true
   }
+
 
   const planFor = (): PlanId | 'invited_free' => {
     if (type === 'invited') return 'invited_free'
