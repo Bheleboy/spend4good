@@ -399,11 +399,7 @@ function OnboardingPage() {
               {type === 'nonprofit' && form.country === 'ZA' && (
                 <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
                   <p className="text-xs text-[oklch(0.45_0_0)]">
-                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — 14-day free trial on any plan. If you were invited by a funder,{' '}
-                    <Link to="/onboarding" search={{ type: 'invited' }} className="underline text-[oklch(0.7_0_0)]">
-                      click here instead
-                    </Link>{' '}
-                    — invited nonprofits pay nothing, ever.
+                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — 14-day free trial on any plan. Nonprofits invited by a funder receive a private invite email; no self-serve invited signup.
                   </p>
                 </div>
               )}
