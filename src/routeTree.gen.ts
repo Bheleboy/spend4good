@@ -13,6 +13,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppWhatsappRouteImport } from './routes/_app.whatsapp'
 import { Route as AppUsersRouteImport } from './routes/_app.users'
@@ -47,6 +48,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AppUsersRoute
   '/whatsapp': typeof AppWhatsappRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/compliance/calendar': typeof AppComplianceCalendarRoute
   '/compliance/reports': typeof AppComplianceReportsRoute
   '/compliance/score': typeof AppComplianceScoreRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/users': typeof AppUsersRoute
   '/whatsapp': typeof AppWhatsappRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/compliance/calendar': typeof AppComplianceCalendarRoute
   '/compliance/reports': typeof AppComplianceReportsRoute
   '/compliance/score': typeof AppComplianceScoreRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_app/users': typeof AppUsersRoute
   '/_app/whatsapp': typeof AppWhatsappRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/_app/compliance/calendar': typeof AppComplianceCalendarRoute
   '/_app/compliance/reports': typeof AppComplianceReportsRoute
   '/_app/compliance/score': typeof AppComplianceScoreRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/auth/callback'
+    | '/auth/reset-password'
     | '/compliance/calendar'
     | '/compliance/reports'
     | '/compliance/score'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/auth/callback'
+    | '/auth/reset-password'
     | '/compliance/calendar'
     | '/compliance/reports'
     | '/compliance/score'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/_app/users'
     | '/_app/whatsapp'
     | '/auth/callback'
+    | '/auth/reset-password'
     | '/_app/compliance/calendar'
     | '/_app/compliance/reports'
     | '/_app/compliance/score'
@@ -268,6 +280,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -469,6 +489,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
