@@ -233,6 +233,34 @@ function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      <Card className="p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Recent Expenses</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">Latest pending submissions awaiting approval</p>
+          </div>
+          <Link to="/expenses"><Button variant="ghost" size="sm" className="text-xs text-muted-foreground">View all</Button></Link>
+        </div>
+        {recentExpenses.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">All clear — no pending approvals</p>
+        ) : (
+          <div className="divide-y divide-border">
+            {recentExpenses.map((e: any) => (
+              <Link key={e.id} to="/expenses" search={{ highlight: e.id }} className="flex items-center justify-between py-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{e.submitted_by_user?.full_name ?? '—'}</p>
+                  <p className="text-xs text-muted-foreground">{e.project?.name ?? '—'} · {new Date(e.submitted_at).toLocaleString()}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-foreground">{e.currency} {Number(e.amount).toLocaleString()}</p>
+                  <Badge className="bg-warning/20 text-warning border border-warning/30 text-[10px]">Pending</Badge>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   )
 }
