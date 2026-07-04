@@ -13,14 +13,7 @@ export const Route = createFileRoute('/_app/dashboard')({
   component: DashboardPage,
 })
 
-const monthlyData = [
-  { month: 'Oct', amount: 45000 },
-  { month: 'Nov', amount: 52000 },
-  { month: 'Dec', amount: 38000 },
-  { month: 'Jan', amount: 61000 },
-  { month: 'Feb', amount: 48000 },
-  { month: 'Mar', amount: 55000 },
-]
+const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 function DashboardPage() {
   const { user, can } = useAuth()
