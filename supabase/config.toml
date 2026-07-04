@@ -18,3 +18,6 @@ verify_jwt = false
 [functions.lookup-invite]
 verify_jwt = false
 
+[functions.receive-whatsapp]
+verify_jwt = false
+
