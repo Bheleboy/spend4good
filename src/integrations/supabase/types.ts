@@ -197,6 +197,7 @@ export type Database = {
           org_id: string
           project_id: string
           receipt_url: string | null
+          rejection_reason: string | null
           status: string
           submitted_at: string
           submitted_by: string
@@ -214,6 +215,7 @@ export type Database = {
           org_id: string
           project_id: string
           receipt_url?: string | null
+          rejection_reason?: string | null
           status?: string
           submitted_at?: string
           submitted_by: string
@@ -231,6 +233,7 @@ export type Database = {
           org_id?: string
           project_id?: string
           receipt_url?: string | null
+          rejection_reason?: string | null
           status?: string
           submitted_at?: string
           submitted_by?: string
@@ -498,6 +501,55 @@ export type Database = {
         }
         Relationships: []
       }
+      project_members: {
+        Row: {
+          added_at: string
+          id: string
+          org_id: string
+          project_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          org_id: string
+          project_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          org_id?: string
+          project_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           budget: number
@@ -664,6 +716,77 @@ export type Database = {
           org_name?: string | null
         }
         Relationships: []
+      }
+      whatsapp_messages: {
+        Row: {
+          body: string | null
+          expense_id: string | null
+          from_number: string
+          id: string
+          matched_project_id: string | null
+          matched_user_id: string | null
+          media_count: number
+          media_url: string | null
+          message_sid: string | null
+          org_id: string | null
+          received_at: string
+        }
+        Insert: {
+          body?: string | null
+          expense_id?: string | null
+          from_number: string
+          id?: string
+          matched_project_id?: string | null
+          matched_user_id?: string | null
+          media_count?: number
+          media_url?: string | null
+          message_sid?: string | null
+          org_id?: string | null
+          received_at?: string
+        }
+        Update: {
+          body?: string | null
+          expense_id?: string | null
+          from_number?: string
+          id?: string
+          matched_project_id?: string | null
+          matched_user_id?: string | null
+          media_count?: number
+          media_url?: string | null
+          message_sid?: string | null
+          org_id?: string | null
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_matched_project_id_fkey"
+            columns: ["matched_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_matched_user_id_fkey"
+            columns: ["matched_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

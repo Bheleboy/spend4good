@@ -13,31 +13,28 @@ export const Route = createFileRoute('/_app/dashboard')({
   component: DashboardPage,
 })
 
-const monthlyData = [
-  { month: 'Oct', amount: 45000 },
-  { month: 'Nov', amount: 52000 },
-  { month: 'Dec', amount: 38000 },
-  { month: 'Jan', amount: 61000 },
-  { month: 'Feb', amount: 48000 },
-  { month: 'Mar', amount: 55000 },
-]
+const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 function DashboardPage() {
   const { user, can } = useAuth()
   const [metrics, setMetrics] = useState({ projects: 0, pending: 0, docsCount: 0, activeUsers: 0 })
   const [recentDocs, setRecentDocs] = useState<any[]>([])
+  const [recentExpenses, setRecentExpenses] = useState<any[]>([])
+  const [monthlyData, setMonthlyData] = useState<{ month: string; amount: number }[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user) return
     const load = async () => {
       const orgId = user.org_id
-      const [projRes, pendRes, docsCountRes, usersRes, docsRes] = await Promise.all([
+      const [projRes, pendRes, docsCountRes, usersRes, docsRes, monthly, pendingExp] = await Promise.all([
         supabase.from('projects').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'active'),
         supabase.from('expenses').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'pending'),
         supabase.from('compliance_documents').select('*', { count: 'exact', head: true }).eq('org_id', orgId),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('is_active', true),
         supabase.from('compliance_documents').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(10),
+        supabase.from('expenses').select('amount, submitted_at').eq('org_id', orgId).eq('status', 'approved').gte('submitted_at', new Date(Date.now() - 180 * 86400000).toISOString()),
+        supabase.from('expenses').select('id, amount, currency, submitted_at, project:projects(name), submitted_by_user:users!expenses_submitted_by_fkey(full_name)').eq('org_id', orgId).eq('status', 'pending').order('submitted_at', { ascending: false }).limit(5),
       ])
       setMetrics({
         projects: projRes.count || 0,
@@ -46,6 +43,19 @@ function DashboardPage() {
         activeUsers: usersRes.count || 0,
       })
       setRecentDocs(docsRes.data || [])
+      setRecentExpenses(pendingExp.data ?? [])
+      // build last 6 months
+      const buckets = new Map<string, number>()
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i)
+        buckets.set(`${d.getFullYear()}-${d.getMonth()}`, 0)
+      }
+      for (const e of monthly.data ?? []) {
+        const d = new Date(e.submitted_at as string)
+        const k = `${d.getFullYear()}-${d.getMonth()}`
+        if (buckets.has(k)) buckets.set(k, (buckets.get(k) || 0) + Number(e.amount))
+      }
+      setMonthlyData([...buckets.entries()].map(([k, v]) => ({ month: MONTH_LABELS[parseInt(k.split('-')[1])], amount: v })))
       setLoading(false)
     }
     load()
@@ -166,7 +176,7 @@ function DashboardPage() {
                   borderRadius: '8px',
                   fontSize: '12px',
                 }}
-                formatter={(value: number) => [`R ${value.toLocaleString()}`, 'Spent']}
+                formatter={(value: number) => [`R ${value.toLocaleString()}`, 'Approved Spend']}
               />
               <Area type="monotone" dataKey="amount" stroke="var(--color-primary)" strokeWidth={2} fill="url(#colorAmount)" dot={{ r: 4, fill: 'var(--color-primary)', strokeWidth: 2, stroke: 'var(--color-card)' }} />
             </AreaChart>
@@ -223,6 +233,34 @@ function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      <Card className="p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Recent Expenses</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">Latest pending submissions awaiting approval</p>
+          </div>
+          <Link to="/expenses"><Button variant="ghost" size="sm" className="text-xs text-muted-foreground">View all</Button></Link>
+        </div>
+        {recentExpenses.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">All clear — no pending approvals</p>
+        ) : (
+          <div className="divide-y divide-border">
+            {recentExpenses.map((e: any) => (
+              <Link key={e.id} to="/expenses" search={{ highlight: e.id }} className="flex items-center justify-between py-3 hover:bg-muted/30 -mx-2 px-2 rounded">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{e.submitted_by_user?.full_name ?? '—'}</p>
+                  <p className="text-xs text-muted-foreground">{e.project?.name ?? '—'} · {new Date(e.submitted_at).toLocaleString()}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-foreground">{e.currency} {Number(e.amount).toLocaleString()}</p>
+                  <Badge className="bg-warning/20 text-warning border border-warning/30 text-[10px]">Pending</Badge>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   )
 }
