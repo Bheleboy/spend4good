@@ -9,13 +9,13 @@ import { useAuth } from '@/hooks/use-auth'
 import { ExpenseCard, type ExpenseRow } from '@/components/ExpenseCard'
 import { Search } from 'lucide-react'
 
-interface Search {
+interface ExpenseSearch {
   highlight?: string
 }
 
 export const Route = createFileRoute('/_app/expenses')({
   component: ExpensesPage,
-  validateSearch: (s: Record<string, unknown>): Search => ({
+  validateSearch: (s: Record<string, unknown>): ExpenseSearch => ({
     highlight: typeof s.highlight === 'string' ? s.highlight : undefined,
   }),
 })
