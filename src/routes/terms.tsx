@@ -6,7 +6,7 @@ export const Route = createFileRoute('/terms')({
   head: () => ({
     meta: [
       { title: 'Terms of Service — Spend4Good' },
-      { name: 'description', content: 'Terms of Service for Spend4Good, operated by Private Clients Advisory (Pty) Ltd.' },
+      { name: 'description', content: 'Terms of Service for Spend4Good, operated by Private Clients Advisory.' },
     ],
   }),
 })
@@ -34,7 +34,7 @@ function TermsPage() {
         <p className="mt-2 text-sm text-[oklch(0.5_0_0)]">Last updated: 3 July 2026</p>
 
         <Section n={1} title="About Spend4Good">
-          <p>Spend4Good is a nonprofit spend tracking and compliance management platform operated by Private Clients Advisory (Pty) Ltd, registered in South Africa. By using Spend4Good you agree to these terms.</p>
+          <p>Spend4Good is a nonprofit spend tracking and compliance management platform operated by Private Clients Advisory. By using Spend4Good you agree to these terms.</p>
         </Section>
         <Section n={2} title="Accounts and Access">
           <ul className="list-disc space-y-1 pl-5">
@@ -78,7 +78,7 @@ function TermsPage() {
         </Section>
         <Section n={7} title="Intellectual Property">
           <ul className="list-disc space-y-1 pl-5">
-            <li>Spend4Good and its AI-generated reports remain the intellectual property of Private Clients Advisory (Pty) Ltd.</li>
+            <li>Spend4Good and its AI-generated reports remain the intellectual property of Private Clients Advisory.</li>
             <li>AI-generated compliance report drafts are provided for your use and editing — we do not claim ownership of your submitted content.</li>
           </ul>
         </Section>

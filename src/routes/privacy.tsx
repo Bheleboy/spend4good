@@ -34,7 +34,7 @@ function PrivacyPage() {
         <p className="mt-2 text-sm text-[oklch(0.5_0_0)]">Last updated: 3 July 2026</p>
 
         <Section n={1} title="Who We Are">
-          <p>Private Clients Advisory (Pty) Ltd operates Spend4Good (spend4good.com). We are subject to the Protection of Personal Information Act (POPIA) of South Africa.</p>
+          <p>Private Clients Advisory operates Spend4Good (spend4good.com). We are subject to the Protection of Personal Information Act (POPIA) of South Africa.</p>
         </Section>
         <Section n={2} title="What We Collect">
           <ul className="list-disc space-y-1 pl-5">
@@ -87,7 +87,7 @@ function PrivacyPage() {
         </Section>
         <Section n={10} title="Contact">
           <p>Privacy Officer: <a href="mailto:hello@spend4good.com" className="text-[oklch(0.85_0_0)] underline">hello@spend4good.com</a></p>
-          <p>Private Clients Advisory (Pty) Ltd, Durban, KwaZulu-Natal, South Africa</p>
+          <p>Private Clients Advisory, Durban, KwaZulu-Natal, South Africa</p>
         </Section>
       </article>
     </div>
