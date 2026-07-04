@@ -1,8 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowRight, Shield, FileCheck, Users, Zap, CheckCircle, Building2, Heart, MessageCircle, CalendarClock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PLANS, formatPriceLocalized, type Plan } from '@/lib/pricing'
-import { useCountry } from '@/hooks/use-country'
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
@@ -19,7 +17,7 @@ export const Route = createFileRoute('/')({
 })
 
 function LandingPage() {
-  const { isSA } = useCountry()
+
 
   return (
     <div className="min-h-screen bg-[oklch(0.03_0_0)] text-[oklch(0.95_0_0)]">
@@ -128,24 +126,22 @@ function LandingPage() {
       <div className="mx-auto h-px max-w-4xl bg-gradient-to-r from-transparent via-[oklch(0.2_0_0)] to-transparent" />
 
       {/* Pricing */}
-      <section className="mx-auto max-w-6xl px-8 py-24 md:px-16">
-        <p className="text-center text-xs font-medium tracking-widest uppercase text-[oklch(0.4_0_0)]">
+      <section className="mx-auto max-w-3xl px-8 py-24 text-center md:px-16">
+        <p className="text-xs font-medium tracking-widest uppercase text-[oklch(0.4_0_0)]">
           Pricing
         </p>
-        <h2 className="mt-3 text-center text-3xl font-bold tracking-tight md:text-4xl">
-          Simple, transparent pricing
+        <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
+          Transparent pricing
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-[oklch(0.45_0_0)]">
-          14-day free trial on any plan. Nonprofits invited by a funder pay nothing, ever.
+        <p className="mx-auto mt-4 max-w-2xl text-sm text-[oklch(0.45_0_0)]">
+          Annual plans for funders and nonprofits. Nonprofits invited by a funder pay nothing.
         </p>
-        <p className="mt-2 text-center text-xs text-[oklch(0.4_0_0)]">
-          {isSA ? 'Prices shown in ZAR' : 'Prices shown in USD'}
-        </p>
-
-        <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {PLANS.map((plan) => (
-            <PricingCard key={plan.id} plan={plan} isSA={isSA} />
-          ))}
+        <div className="mt-8">
+          <Link to="/pricing">
+            <Button size="lg" className="bg-[oklch(0.95_0_0)] text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)] px-8 text-base font-semibold">
+              View Pricing <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </section>
 
@@ -184,43 +180,6 @@ function LandingPage() {
       </footer>
       {/* Zap intentionally imported for future use */}
       <span className="hidden"><Zap className="hidden" /><CheckCircle className="hidden" /></span>
-    </div>
-  )
-}
-
-function PricingCard({ plan, isSA }: { plan: Plan; isSA: boolean }) {
-  const audienceType = plan.audience === 'funder' ? 'funder' : 'nonprofit'
-  return (
-    <div className={`relative rounded-2xl border p-8 ${plan.highlight ? 'border-[oklch(0.3_0_0)] bg-[oklch(0.08_0_0)] ring-1 ring-[oklch(0.2_0_0)]' : 'border-[oklch(0.15_0_0)] bg-[oklch(0.06_0_0)]'}`}>
-      {plan.highlight && (
-        <div className="absolute -top-3 left-6 rounded-full bg-[oklch(0.6_0.19_163)] px-3 py-0.5 text-[10px] font-bold uppercase text-[oklch(0.03_0_0)]">
-          Popular
-        </div>
-      )}
-      <div className="mb-1 text-xs font-medium uppercase tracking-widest text-[oklch(0.4_0_0)]">{plan.name}</div>
-      <div className="text-3xl font-bold">
-        {formatPriceLocalized(plan, isSA)}
-      </div>
-      <p className="mt-2 text-sm text-[oklch(0.45_0_0)]">
-        {plan.audience === 'funder'
-          ? plan.npoLimit === null
-            ? 'Unlimited nonprofits & projects.'
-            : `Up to ${plan.npoLimit} nonprofits.`
-          : 'For self-registered nonprofits.'}
-      </p>
-      <div className="my-6 h-px bg-[oklch(0.15_0_0)]" />
-      <ul className="space-y-3">
-        {plan.features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-sm text-[oklch(0.6_0_0)]">
-            <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[oklch(0.6_0.19_163)]" /> {f}
-          </li>
-        ))}
-      </ul>
-      <Link to="/onboarding" search={{ type: audienceType }} className="mt-8 block">
-        <Button className={`w-full font-semibold ${plan.highlight ? 'bg-[oklch(0.95_0_0)] text-[oklch(0.03_0_0)] hover:bg-[oklch(0.85_0_0)]' : 'border border-[oklch(0.25_0_0)] bg-transparent text-[oklch(0.95_0_0)] hover:bg-[oklch(0.12_0_0)]'}`}>
-          Get Started
-        </Button>
-      </Link>
     </div>
   )
 }
