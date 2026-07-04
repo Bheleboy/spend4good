@@ -21,6 +21,7 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppWhatsappRouteImport } from './routes/_app.whatsapp'
 import { Route as AppUsersRouteImport } from './routes/_app.users'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProjectsRouteImport } from './routes/_app.projects'
 import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppDocumentsRouteImport } from './routes/_app.documents'
@@ -93,6 +94,11 @@ const AppUsersRoute = AppUsersRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProjectsRoute = AppProjectsRouteImport.update({
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof AppDocumentsRoute
   '/expenses': typeof AppExpensesRoute
   '/projects': typeof AppProjectsRouteWithChildren
+  '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
   '/users': typeof AppUsersRoute
   '/whatsapp': typeof AppWhatsappRoute
@@ -205,6 +212,7 @@ export interface FileRoutesByTo {
   '/documents': typeof AppDocumentsRoute
   '/expenses': typeof AppExpensesRoute
   '/projects': typeof AppProjectsRouteWithChildren
+  '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
   '/users': typeof AppUsersRoute
   '/whatsapp': typeof AppWhatsappRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/_app/documents': typeof AppDocumentsRoute
   '/_app/expenses': typeof AppExpensesRoute
   '/_app/projects': typeof AppProjectsRouteWithChildren
+  '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/users': typeof AppUsersRoute
   '/_app/whatsapp': typeof AppWhatsappRoute
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/expenses'
     | '/projects'
+    | '/reports'
     | '/settings'
     | '/users'
     | '/whatsapp'
@@ -290,6 +300,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/expenses'
     | '/projects'
+    | '/reports'
     | '/settings'
     | '/users'
     | '/whatsapp'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/_app/documents'
     | '/_app/expenses'
     | '/_app/projects'
+    | '/_app/reports'
     | '/_app/settings'
     | '/_app/users'
     | '/_app/whatsapp'
@@ -430,6 +442,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports': {
+      id: '/_app/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/projects': {
@@ -551,6 +570,7 @@ interface AppRouteChildren {
   AppDocumentsRoute: typeof AppDocumentsRoute
   AppExpensesRoute: typeof AppExpensesRoute
   AppProjectsRoute: typeof AppProjectsRouteWithChildren
+  AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppUsersRoute: typeof AppUsersRoute
   AppWhatsappRoute: typeof AppWhatsappRoute
@@ -570,6 +590,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDocumentsRoute: AppDocumentsRoute,
   AppExpensesRoute: AppExpensesRoute,
   AppProjectsRoute: AppProjectsRouteWithChildren,
+  AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppUsersRoute: AppUsersRoute,
   AppWhatsappRoute: AppWhatsappRoute,
