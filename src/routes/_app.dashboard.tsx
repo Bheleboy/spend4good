@@ -176,7 +176,7 @@ function DashboardPage() {
                   borderRadius: '8px',
                   fontSize: '12px',
                 }}
-                formatter={(value: number) => [`R ${value.toLocaleString()}`, 'Spent']}
+                formatter={(value: number) => [`R ${value.toLocaleString()}`, 'Approved Spend']}
               />
               <Area type="monotone" dataKey="amount" stroke="var(--color-primary)" strokeWidth={2} fill="url(#colorAmount)" dot={{ r: 4, fill: 'var(--color-primary)', strokeWidth: 2, stroke: 'var(--color-card)' }} />
             </AreaChart>
