@@ -19,18 +19,22 @@ function DashboardPage() {
   const { user, can } = useAuth()
   const [metrics, setMetrics] = useState({ projects: 0, pending: 0, docsCount: 0, activeUsers: 0 })
   const [recentDocs, setRecentDocs] = useState<any[]>([])
+  const [recentExpenses, setRecentExpenses] = useState<any[]>([])
+  const [monthlyData, setMonthlyData] = useState<{ month: string; amount: number }[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user) return
     const load = async () => {
       const orgId = user.org_id
-      const [projRes, pendRes, docsCountRes, usersRes, docsRes] = await Promise.all([
+      const [projRes, pendRes, docsCountRes, usersRes, docsRes, monthly, pendingExp] = await Promise.all([
         supabase.from('projects').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'active'),
         supabase.from('expenses').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'pending'),
         supabase.from('compliance_documents').select('*', { count: 'exact', head: true }).eq('org_id', orgId),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('is_active', true),
         supabase.from('compliance_documents').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(10),
+        supabase.from('expenses').select('amount, submitted_at').eq('org_id', orgId).eq('status', 'approved').gte('submitted_at', new Date(Date.now() - 180 * 86400000).toISOString()),
+        supabase.from('expenses').select('id, amount, currency, submitted_at, project:projects(name), submitted_by_user:users!expenses_submitted_by_fkey(full_name)').eq('org_id', orgId).eq('status', 'pending').order('submitted_at', { ascending: false }).limit(5),
       ])
       setMetrics({
         projects: projRes.count || 0,
@@ -39,6 +43,19 @@ function DashboardPage() {
         activeUsers: usersRes.count || 0,
       })
       setRecentDocs(docsRes.data || [])
+      setRecentExpenses(pendingExp.data ?? [])
+      // build last 6 months
+      const buckets = new Map<string, number>()
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i)
+        buckets.set(`${d.getFullYear()}-${d.getMonth()}`, 0)
+      }
+      for (const e of monthly.data ?? []) {
+        const d = new Date(e.submitted_at as string)
+        const k = `${d.getFullYear()}-${d.getMonth()}`
+        if (buckets.has(k)) buckets.set(k, (buckets.get(k) || 0) + Number(e.amount))
+      }
+      setMonthlyData([...buckets.entries()].map(([k, v]) => ({ month: MONTH_LABELS[parseInt(k.split('-')[1])], amount: v })))
       setLoading(false)
     }
     load()
