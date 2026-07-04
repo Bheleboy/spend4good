@@ -174,6 +174,8 @@ function LandingPage() {
           <span>·</span>
           <Link to="/privacy" className="hover:text-[oklch(0.8_0_0)]">Privacy</Link>
           <span>·</span>
+          <Link to="/refund-policy" className="hover:text-[oklch(0.8_0_0)]">Refund Policy</Link>
+          <span>·</span>
           <Link to="/waitlist" className="hover:text-[oklch(0.8_0_0)]">Waitlist</Link>
         </div>
         © {new Date().getFullYear()} Spend4Good. Built in South Africa. Built for South African nonprofits.

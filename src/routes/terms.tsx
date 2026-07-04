@@ -49,8 +49,7 @@ function TermsPage() {
             <li>Paid plans are billed annually in USD via Paddle, our authorised payment processor and merchant of record.</li>
             <li>Paddle handles all payment processing, VAT, and tax compliance on our behalf.</li>
             <li>Subscriptions auto-renew annually unless cancelled before the renewal date.</li>
-            
-            <li>Nonprofits invited by a funder access the platform at no charge for the duration of the funder relationship.</li>
+            <li id="refund-policy">Nonprofits invited by a funder access the platform at no charge for the duration of the funder relationship.</li>
             <li>Refunds are available within 14 days of initial purchase for annual plans.</li>
           </ul>
         </Section>

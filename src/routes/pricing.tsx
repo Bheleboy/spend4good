@@ -78,6 +78,8 @@ function PricingPage() {
           <Link to="/terms" className="hover:text-[oklch(0.8_0_0)]">Terms</Link>
           <span>·</span>
           <Link to="/privacy" className="hover:text-[oklch(0.8_0_0)]">Privacy</Link>
+          <span>·</span>
+          <Link to="/refund-policy" className="hover:text-[oklch(0.8_0_0)]">Refund Policy</Link>
         </div>
         © {new Date().getFullYear()} Spend4Good.
       </footer>
