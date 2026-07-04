@@ -215,7 +215,7 @@ export function ProjectReport({ projectId }: Props) {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             ))}
           </TableBody>
         </Table>
