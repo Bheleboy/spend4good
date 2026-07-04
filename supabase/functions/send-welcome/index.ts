@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
   if (body.account_type === 'nonprofit') {
     const relationship = body.invited_by
       ? `<p style="margin:0 0 16px;font-size:15px;line-height:22px;color:#c5c5c5;">You've been connected to <strong style="color:#f5f5f5;">${body.invited_by}</strong> on Spend4Good. They can now view your projects and expenses.</p>`
-      : `<p style="margin:0 0 16px;font-size:15px;line-height:22px;color:#c5c5c5;">Your 14-day free trial starts now.</p>`
+      : `<p style="margin:0 0 16px;font-size:15px;line-height:22px;color:#c5c5c5;">Your Spend4Good account is ready to go.</p>`
     const html = shell(`
       <tr><td style="padding:8px 32px 0;">
         <h1 style="margin:16px 0 8px;font-size:22px;font-weight:800;">Welcome, ${body.full_name}</h1>

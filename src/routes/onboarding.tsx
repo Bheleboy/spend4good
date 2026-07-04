@@ -444,7 +444,7 @@ function OnboardingPage() {
               {type === 'nonprofit' && form.country === 'ZA' && (
                 <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
                   <p className="text-xs text-[oklch(0.45_0_0)]">
-                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — 14-day free trial on any plan. Nonprofits invited by a funder receive a private invite email; no self-serve invited signup.
+                    <strong className="text-[oklch(0.6_0_0)]">Self-registration</strong> — annual plans, billed in USD. Nonprofits invited by a funder receive a private invite email; no self-serve invited signup.
                   </p>
                 </div>
               )}
@@ -559,7 +559,7 @@ function OnboardingPage() {
           {step === 3 && type !== 'invited' && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Choose your plan</h2>
-              <p className="text-xs text-[oklch(0.45_0_0)]">14-day free trial on any plan. Cancel anytime.</p>
+              <p className="text-xs text-[oklch(0.45_0_0)]">Annual plans, billed in USD. Cancel anytime before renewal.</p>
               <div className="space-y-3">
                 {plansForAudience(type === 'funder' ? 'funder' : 'nonprofit').map((plan, i) => (
                   <PlanCard
