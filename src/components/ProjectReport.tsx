@@ -190,7 +190,7 @@ export function ProjectReport({ projectId }: Props) {
             {byAgent.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No submissions</TableCell></TableRow>
             ) : byAgent.map((a) => (
-              <>
+              <Fragment key={a.id}>
                 <TableRow key={a.id} className="cursor-pointer" onClick={() => setExpanded((p) => ({ ...p, [a.id]: !p[a.id] }))}>
                   <TableCell>{expanded[a.id] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</TableCell>
                   <TableCell className="font-medium">{a.name}</TableCell>
