@@ -122,10 +122,13 @@ function OnboardingPage() {
   const canNext = () => {
     if (step === 1) {
       if (type === 'invited') return !!invite
-      if (type === 'nonprofit' && form.country !== 'ZA') return false
-      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7 && !!form.country
+      if (type === 'funder') return form.orgName.length > 1 && form.email.length > 3 && !!form.country
+      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7 && !!form.country && form.country === 'ZA'
     }
-    if (step === 2) return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
+    if (step === 2) {
+      if (type === 'funder') return form.fullName.length > 1 && form.email.length > 3 && form.password.length >= 8
+      return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
+    }
     return true
   }
 
@@ -239,8 +242,8 @@ function OnboardingPage() {
 
       const { error: userError } = await supabase.from('users').insert({
         id: authUserId,
-        phone_number: form.phone,
-        whatsapp_number: form.phone,
+        phone_number: type === 'funder' ? null : form.phone,
+        whatsapp_number: type === 'funder' ? null : form.phone,
         org_id: org.id,
         role,
         full_name: form.fullName,
@@ -405,19 +408,21 @@ function OnboardingPage() {
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
-                  <Input
-                    value={form.phone}
-                    onChange={(e) => update('phone', e.target.value)}
-                    placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
-                    className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
-                  />
+              {type === 'nonprofit' && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
+                    <Input
+                      value={form.phone}
+                      onChange={(e) => update('phone', e.target.value)}
+                      placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
+                      className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">Linked to your WhatsApp for document submissions</p>
                 </div>
-                <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">Linked to your WhatsApp for document submissions</p>
-              </div>
+              )}
               {type === 'nonprofit' && form.country !== 'ZA' && (
                 <div className="rounded-xl border border-[oklch(0.2_0.05_60)] bg-[oklch(0.08_0.02_60)] p-4 space-y-3">
                   <p className="text-sm text-[oklch(0.85_0_0)]">
@@ -490,9 +495,11 @@ function OnboardingPage() {
           {step === 2 && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Your details</h2>
-              <p className="text-xs text-[oklch(0.45_0_0)]">
-                Your phone number will be linked to WhatsApp for document submissions.
-              </p>
+              {type !== 'funder' && (
+                <p className="text-xs text-[oklch(0.45_0_0)]">
+                  Your phone number will be linked to WhatsApp for document submissions.
+                </p>
+              )}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Full Name</label>
                 <div className="relative">
@@ -523,18 +530,20 @@ function OnboardingPage() {
                   </p>
                 </div>
               )}
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
-                  <Input
-                    value={form.phone}
-                    onChange={(e) => update('phone', e.target.value)}
-                    placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
-                    className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
-                  />
+              {type !== 'funder' && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
+                    <Input
+                      value={form.phone}
+                      onChange={(e) => update('phone', e.target.value)}
+                      placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
+                      className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Password</label>
                 <div className="relative">
@@ -549,7 +558,9 @@ function OnboardingPage() {
                 </div>
               </div>
               <p className="text-xs text-[oklch(0.4_0_0)]">
-                You'll confirm your email and verify your WhatsApp number after sign-in.
+                {type === 'funder'
+                  ? "You'll receive a confirmation email after sign-in."
+                  : "You'll confirm your email and verify your WhatsApp number after sign-in."}
               </p>
 
             </div>
