@@ -22,12 +22,19 @@ export const Route = createFileRoute('/login')({
 })
 
 function LoginPage() {
+  const { checkout } = Route.useSearch()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
   const { refresh } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (checkout === 'success') {
+      toast.success('Payment confirmed! Your account is active.')
+    }
+  }, [checkout])
 
   const handleSignIn = async () => {
     if (!email || !password) {
