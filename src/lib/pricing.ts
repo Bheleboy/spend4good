@@ -22,6 +22,7 @@ export interface Plan {
   features: string[]
   highlight?: boolean
   paddlePriceId: string
+  paddlePriceIdZAR: string
 }
 
 export const PLANS: Plan[] = [
@@ -42,7 +43,8 @@ export const PLANS: Plan[] = [
       'Full spend reporting',
     ],
     highlight: true,
-    paddlePriceId: 'pro_01kwpp91p472za95c5qnx5encd',
+    paddlePriceId: 'pri_01kws8fq0fjt8qae6jg7t44ja4',
+    paddlePriceIdZAR: 'pri_01kws8h1by4yvdncfm9xcbfq29',
   },
   {
     id: 'funder_starter',
@@ -60,7 +62,8 @@ export const PLANS: Plan[] = [
       'WhatsApp reporting',
     ],
     highlight: true,
-    paddlePriceId: 'pro_01kwppa1z6q21fjcycvb8v8q5j',
+    paddlePriceId: 'pri_01kws8ck9vxxb70drnjgzqjzym',
+    paddlePriceIdZAR: 'pri_01kws8dffyp1eckjpdsgsgtwek',
   },
   {
     id: 'funder_growth',
@@ -76,7 +79,8 @@ export const PLANS: Plan[] = [
       'Advanced reporting & exports',
       'Priority support',
     ],
-    paddlePriceId: 'pro_01kwppavr6g7hpef9gs93xt5xa',
+    paddlePriceId: 'pri_01kws86d727wb4ppewpsj8qy58',
+    paddlePriceIdZAR: 'pri_01kws8b3fj32q9xmq7afpcy90k',
   },
   {
     id: 'funder_unlimited',
@@ -93,7 +97,8 @@ export const PLANS: Plan[] = [
       'Dedicated support',
       'Early access to new jurisdiction compliance packs',
     ],
-    paddlePriceId: 'pro_01kwppbnxzsn2avzev27zn30cj',
+    paddlePriceId: 'pri_01kws82p7p7xc09qpjd4xxee0e',
+    paddlePriceIdZAR: 'pri_01kws84gsnryrxpegytjdcn4w0',
   },
 ]
 
@@ -120,4 +125,5 @@ export function formatPriceLocalized(plan: Plan, isSA: boolean): string {
   if (isSA) return `R${ZAR_PRICES[plan.id].toLocaleString('en-ZA')}/year`
   return `$${plan.priceUSD.toLocaleString('en-US')}/year`
 }
+
 
