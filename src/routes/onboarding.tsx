@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+
+
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, Lock, CheckCircle, Loader2, FileText, MapPin } from 'lucide-react'
@@ -19,6 +21,7 @@ type StepKind = 'welcome' | 'org' | 'registration' | 'personal' | 'billing' | 'p
 export const Route = createFileRoute('/onboarding')({
   component: OnboardingPage,
   validateSearch: (search: Record<string, unknown>): { type: OnboardingType; token?: string } => ({
+
     type: (search.type as OnboardingType) || 'nonprofit',
     token: typeof search.token === 'string' ? search.token : undefined,
   }),
@@ -29,6 +32,7 @@ export const Route = createFileRoute('/onboarding')({
     ],
   }),
 })
+
 
 interface InviteInfo {
   id: string
@@ -153,6 +157,8 @@ function OnboardingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep])
 
+
+
   const canNext = (): boolean => {
     switch (currentStep) {
       case 'welcome':
@@ -194,6 +200,8 @@ function OnboardingPage() {
   const handleComplete = async () => {
     setLoading(true)
     try {
+
+
       // === Invited flow ===
       if (type === 'invited') {
         if (!invite) {
@@ -396,6 +404,11 @@ function OnboardingPage() {
     }
     setLoading(false)
   }
+
+
+
+
+
 
   // ==== Invited flow: full-screen block when token missing OR invalid ====
   if (type === 'invited') {
