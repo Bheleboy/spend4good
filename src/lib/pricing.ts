@@ -42,7 +42,7 @@ export const PLANS: Plan[] = [
       'Full spend reporting',
     ],
     highlight: true,
-    paddlePriceId: '',
+    paddlePriceId: 'pro_01kwpp91p472za95c5qnx5encd',
   },
   {
     id: 'funder_starter',
