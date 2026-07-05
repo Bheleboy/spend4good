@@ -18,6 +18,8 @@ export type EmailType =
   | 'deadline_reminder'
   | 'password_reset'
   | 'confirm_signup'
+  | 'payment_confirmation'
+  | 'admin_new_npo'
 
 export function shell(innerHtml: string): string {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>

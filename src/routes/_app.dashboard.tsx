@@ -106,6 +106,25 @@ function DashboardPage() {
         </Card>
       )}
 
+      {user?.organization?.type === 'nonprofit' && (
+        <div className="flex flex-wrap items-center gap-2">
+          {user.organization.is_verified ? (
+            <Badge className="bg-success/15 text-success border border-success/20 hover:bg-success/20">
+              ✓ Verified NPO
+            </Badge>
+          ) : (
+            <span title="Your registration number is being verified by the Spend4Good team. This usually takes 1 business day.">
+              <Badge className="bg-warning/15 text-warning border border-warning/20 hover:bg-warning/20 cursor-help">
+                Verification Pending
+              </Badge>
+            </span>
+          )}
+          {user.organization.npo_registration_number && (
+            <span className="text-xs text-muted-foreground">NPO: {user.organization.npo_registration_number}</span>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
