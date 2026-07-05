@@ -21,3 +21,13 @@ verify_jwt = false
 [functions.receive-whatsapp]
 verify_jwt = false
 
+[functions.paddle-webhook]
+verify_jwt = false
+
+[functions.notify-admin-signup]
+verify_jwt = false
+
+[functions.send-payment-confirmation]
+verify_jwt = true
+
+

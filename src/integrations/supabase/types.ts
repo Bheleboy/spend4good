@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      billing_details: {
+        Row: {
+          address_line1: string
+          address_line2: string | null
+          billing_email: string
+          city: string
+          country: string
+          created_at: string
+          id: string
+          legal_name: string
+          org_id: string
+          postal_code: string
+          province: string | null
+          signatory_name: string
+          signatory_title: string
+          updated_at: string
+          vat_number: string | null
+        }
+        Insert: {
+          address_line1: string
+          address_line2?: string | null
+          billing_email: string
+          city: string
+          country: string
+          created_at?: string
+          id?: string
+          legal_name: string
+          org_id: string
+          postal_code: string
+          province?: string | null
+          signatory_name: string
+          signatory_title: string
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Update: {
+          address_line1?: string
+          address_line2?: string | null
+          billing_email?: string
+          city?: string
+          country?: string
+          created_at?: string
+          id?: string
+          legal_name?: string
+          org_id?: string
+          postal_code?: string
+          province?: string | null
+          signatory_name?: string
+          signatory_title?: string
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_details_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_deadlines: {
         Row: {
           created_at: string
@@ -431,10 +493,13 @@ export type Database = {
           country: string
           created_at: string
           id: string
+          is_verified: boolean
           name: string
+          npo_registration_number: string | null
           onboarding_status: string
           paddle_customer_id: string | null
           paddle_subscription_id: string | null
+          pbo_number: string | null
           phone_number: string | null
           slug: string
           subscription_plan: string
@@ -442,15 +507,20 @@ export type Database = {
           subscription_tier: string
           type: string
           updated_at: string
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           country?: string
           created_at?: string
           id?: string
+          is_verified?: boolean
           name: string
+          npo_registration_number?: string | null
           onboarding_status?: string
           paddle_customer_id?: string | null
           paddle_subscription_id?: string | null
+          pbo_number?: string | null
           phone_number?: string | null
           slug: string
           subscription_plan?: string
@@ -458,15 +528,20 @@ export type Database = {
           subscription_tier?: string
           type: string
           updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           country?: string
           created_at?: string
           id?: string
+          is_verified?: boolean
           name?: string
+          npo_registration_number?: string | null
           onboarding_status?: string
           paddle_customer_id?: string | null
           paddle_subscription_id?: string | null
+          pbo_number?: string | null
           phone_number?: string | null
           slug?: string
           subscription_plan?: string
@@ -474,6 +549,8 @@ export type Database = {
           subscription_tier?: string
           type?: string
           updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: []
       }
