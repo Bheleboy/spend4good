@@ -122,10 +122,13 @@ function OnboardingPage() {
   const canNext = () => {
     if (step === 1) {
       if (type === 'invited') return !!invite
-      if (type === 'nonprofit' && form.country !== 'ZA') return false
-      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7 && !!form.country
+      if (type === 'funder') return form.orgName.length > 1 && form.email.length > 3 && !!form.country
+      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7 && !!form.country && form.country === 'ZA'
     }
-    if (step === 2) return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
+    if (step === 2) {
+      if (type === 'funder') return form.fullName.length > 1 && form.email.length > 3 && form.password.length >= 8
+      return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
+    }
     return true
   }
 
