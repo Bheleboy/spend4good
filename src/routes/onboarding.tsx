@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+
 
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -19,8 +20,8 @@ type StepKind = 'welcome' | 'org' | 'registration' | 'personal' | 'billing' | 'p
 
 export const Route = createFileRoute('/onboarding')({
   component: OnboardingPage,
-  ssr: false,
   validateSearch: (search: Record<string, unknown>): { type: OnboardingType; token?: string } => ({
+
     type: (search.type as OnboardingType) || 'nonprofit',
     token: typeof search.token === 'string' ? search.token : undefined,
   }),
@@ -404,40 +405,6 @@ function OnboardingPage() {
     setLoading(false)
   }
 
-  // Native fallback for Create Account button when React hydration is flaky
-  const handleCompleteRef = useRef(handleComplete)
-  useEffect(() => {
-    handleCompleteRef.current = handleComplete
-  }, [handleComplete])
-
-  useEffect(() => {
-    console.log('Native fallback effect running', { step, totalSteps, matches: step === totalSteps })
-    if (step !== totalSteps) return
-    const findButton = (): HTMLButtonElement | null => {
-      const all = Array.from(document.querySelectorAll('button'))
-      const texts = all.map((b) => b.innerText)
-      console.log('Native fallback button texts:', texts)
-      return all.find((b) => b.innerText.includes('Create Account')) as HTMLButtonElement | null
-    }
-    let currentBtn: HTMLButtonElement | null = null
-    const listener = () => handleCompleteRef.current()
-    const attach = () => {
-      const btn = findButton()
-      if (btn && btn !== currentBtn) {
-        if (currentBtn) currentBtn.removeEventListener('click', listener)
-        currentBtn = btn
-        currentBtn.addEventListener('click', listener)
-        console.log('Native fallback: attached listener to Create Account button')
-      }
-    }
-    attach()
-    const observer = new MutationObserver(attach)
-    observer.observe(document.body, { childList: true, subtree: true })
-    return () => {
-      if (currentBtn) currentBtn.removeEventListener('click', listener)
-      observer.disconnect()
-    }
-  }, [step, totalSteps])
 
 
 
