@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { signUpWithPassword } from '@/lib/auth'
 import { plansForAudience, formatPriceLocalized, type PlanId } from '@/lib/pricing'
 import { useCountry } from '@/hooks/use-country'
+import { usePaddle } from '@/hooks/use-paddle'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
 
@@ -42,6 +43,7 @@ function OnboardingPage() {
   const { type, token } = Route.useSearch()
   const navigate = useNavigate()
   const { isSA } = useCountry()
+  const { openCheckout } = usePaddle()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
 
@@ -277,8 +279,27 @@ function OnboardingPage() {
         console.warn('welcome email failed', e)
       }
 
-      toast.success('Account created! Check your email to confirm, then sign in.')
-      navigate({ to: '/login' })
+      // Determine selected plan + price for Paddle checkout
+      const plans = plansForAudience(type === 'funder' ? 'funder' : 'nonprofit')
+      const selectedPlanObj = plans[selectedPlan] ?? plans[0]
+      const priceId = isSA ? selectedPlanObj.paddlePriceIdZAR : selectedPlanObj.paddlePriceId
+
+      if (!priceId) {
+        toast.success('Account created! Check your email to confirm, then sign in.')
+        navigate({ to: '/login' })
+        return
+      }
+
+      openCheckout({
+        priceId,
+        email: form.email,
+        customData: {
+          org_id: org.id,
+          plan_id: selectedPlanObj.id,
+          user_id: authUserId,
+        },
+      })
+      // Paddle overlay handles the rest; successUrl -> /login?checkout=success
     } catch {
       toast.error('Something went wrong. Please try again.')
     }
