@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, Lock, CheckCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Building2, Heart, Mail, Phone, User, Lock, CheckCircle, Loader2, FileText, MapPin } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { signUpWithPassword } from '@/lib/auth'
 import { plansForAudience, formatPriceLocalized, type PlanId } from '@/lib/pricing'
@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 
 
 type OnboardingType = 'funder' | 'nonprofit' | 'invited'
+type StepKind = 'welcome' | 'org' | 'registration' | 'personal' | 'billing' | 'plan'
 
 export const Route = createFileRoute('/onboarding')({
   component: OnboardingPage,
@@ -59,15 +60,37 @@ function OnboardingPage() {
     phone: '',
     inviteCode: token ?? '',
     country: 'ZA',
+    // Registration (nonprofit)
+    npoNumber: '',
+    pboNumber: '',
+    // Billing
+    billingLegalName: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    province: '',
+    postalCode: '',
+    vatNumber: '',
+    signatoryName: '',
+    signatoryTitle: '',
+    billingEmail: '',
   })
 
-  const totalSteps = type === 'invited' ? 2 : 3
+  const steps: StepKind[] =
+    type === 'invited'
+      ? ['welcome', 'personal']
+      : type === 'funder'
+        ? ['org', 'personal', 'billing', 'plan']
+        : ['org', 'registration', 'personal', 'billing', 'plan']
+
+  const totalSteps = steps.length
+  const currentStep: StepKind = steps[step - 1]
+
   const label = type === 'funder' ? 'Funder' : type === 'nonprofit' ? 'Non-Profit' : 'Invited Non-Profit'
   const Icon = type === 'funder' ? Building2 : Heart
 
   const update = (field: string, value: string) => setForm((p) => ({ ...p, [field]: value }))
 
-  // Look up invitation details by token via edge function (service role, no anon DB access)
   const validateInvite = async (t: string): Promise<InviteInfo | null> => {
     setValidatingInvite(true)
     setInviteError(null)
@@ -76,7 +99,6 @@ function OnboardingPage() {
         body: { token: t },
       })
       const data = raw as null | { id: string; funder_org_id: string; nonprofit_name: string; nonprofit_email: string; status: string; expires_at: string; funder_name: string | null }
-
 
       if (error || !data || (data as any).error) {
         setInviteError('Invitation not found. Check your link or code.')
@@ -112,8 +134,6 @@ function OnboardingPage() {
     }
   }
 
-
-  // Auto-validate when arriving with ?token=
   useEffect(() => {
     if (type === 'invited' && token && !invite && !inviteError) {
       validateInvite(token)
@@ -121,19 +141,44 @@ function OnboardingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, token])
 
-  const canNext = () => {
-    if (step === 1) {
-      if (type === 'invited') return !!invite
-      if (type === 'funder') return form.orgName.length > 1 && form.email.length > 3 && !!form.country
-      return form.orgName.length > 1 && form.email.length > 3 && form.phone.length > 7 && !!form.country && form.country === 'ZA'
+  // Pre-fill billing fields from earlier steps when entering billing step
+  useEffect(() => {
+    if (currentStep === 'billing') {
+      setForm((p) => ({
+        ...p,
+        billingLegalName: p.billingLegalName || p.orgName,
+        billingEmail: p.billingEmail || p.email,
+      }))
     }
-    if (step === 2) {
-      if (type === 'funder') return form.fullName.length > 1 && form.email.length > 3 && form.password.length >= 8
-      return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep])
+
+  const canNext = (): boolean => {
+    switch (currentStep) {
+      case 'welcome':
+        return !!invite
+      case 'org':
+        if (type === 'funder') return form.orgName.length > 1 && form.email.length > 3 && !!form.country
+        return form.orgName.length > 1 && form.email.length > 3 && !!form.country && form.country === 'ZA'
+      case 'registration':
+        return form.npoNumber.trim().length > 2 || form.pboNumber.trim().length > 2
+      case 'personal':
+        if (type === 'funder') return form.fullName.length > 1 && form.email.length > 3 && form.password.length >= 8
+        return form.fullName.length > 1 && form.phone.length > 7 && form.email.length > 3 && form.password.length >= 8
+      case 'billing':
+        return (
+          form.addressLine1.trim().length > 1 &&
+          form.city.trim().length > 1 &&
+          form.postalCode.trim().length > 1 &&
+          form.signatoryName.trim().length > 1 &&
+          form.signatoryTitle.trim().length > 1 &&
+          form.billingEmail.trim().length > 3
+        )
+      case 'plan':
+        return true
     }
     return true
   }
-
 
   const planFor = (): PlanId | 'invited_free' => {
     if (type === 'invited') return 'invited_free'
@@ -188,7 +233,6 @@ function OnboardingPage() {
           return
         }
 
-        // Best-effort welcome email
         try {
           await supabase.functions.invoke('send-welcome', {
             body: {
@@ -222,17 +266,24 @@ function OnboardingPage() {
       }
       const authUserId = authData.user.id
 
+      const orgInsert: Record<string, any> = {
+        name: form.orgName,
+        slug: slug || 'org-' + Date.now(),
+        country: form.country,
+        onboarding_status: 'pending',
+        subscription_tier: plan,
+        type: orgType,
+        subscription_plan: plan,
+      }
+      if (type === 'nonprofit') {
+        orgInsert.npo_registration_number = form.npoNumber || null
+        orgInsert.pbo_number = form.pboNumber || null
+        orgInsert.is_verified = false
+      }
+
       const { data: org, error: orgError } = await supabase
         .from('organizations')
-        .insert({
-          name: form.orgName,
-          slug: slug || 'org-' + Date.now(),
-          country: form.country,
-          onboarding_status: 'pending',
-          subscription_tier: plan,
-          type: orgType,
-          subscription_plan: plan,
-        })
+        .insert(orgInsert)
         .select()
         .single()
 
@@ -265,6 +316,25 @@ function OnboardingPage() {
         org_id: org.id,
       })
 
+      // Billing details (both funder + nonprofit self-reg)
+      const { error: billingError } = await supabase.from('billing_details').insert({
+        org_id: org.id,
+        legal_name: form.billingLegalName || form.orgName,
+        address_line1: form.addressLine1,
+        address_line2: form.addressLine2 || null,
+        city: form.city,
+        province: form.province || null,
+        postal_code: form.postalCode,
+        country: form.country,
+        vat_number: form.vatNumber || null,
+        signatory_name: form.signatoryName,
+        signatory_title: form.signatoryTitle,
+        billing_email: form.billingEmail || form.email,
+      })
+      if (billingError) {
+        console.warn('billing_details insert failed', billingError)
+      }
+
       try {
         await supabase.functions.invoke('send-welcome', {
           body: {
@@ -279,7 +349,23 @@ function OnboardingPage() {
         console.warn('welcome email failed', e)
       }
 
-      // Determine selected plan + price for Paddle checkout
+      // Admin notification for new unverified NPO
+      if (type === 'nonprofit') {
+        try {
+          await supabase.functions.invoke('notify-admin-signup', {
+            body: {
+              org_name: form.orgName,
+              npo_number: form.npoNumber,
+              pbo_number: form.pboNumber,
+              email: form.email,
+              country: form.country,
+            },
+          })
+        } catch (e) {
+          console.warn('admin notify failed', e)
+        }
+      }
+
       const plans = plansForAudience(type === 'funder' ? 'funder' : 'nonprofit')
       const selectedPlanObj = plans[selectedPlan] ?? plans[0]
       const priceId = isSA ? selectedPlanObj.paddlePriceIdZAR : selectedPlanObj.paddlePriceId
@@ -298,14 +384,18 @@ function OnboardingPage() {
           plan_id: selectedPlanObj.id,
           user_id: authUserId,
         },
+        billingDetails: {
+          addressLine1: form.addressLine1,
+          city: form.city,
+          postalCode: form.postalCode,
+          country: form.country,
+        },
       })
-      // Paddle overlay handles the rest; successUrl -> /login?checkout=success
     } catch {
       toast.error('Something went wrong. Please try again.')
     }
     setLoading(false)
   }
-
 
   // ==== Invited flow: full-screen block when token missing OR invalid ====
   if (type === 'invited') {
@@ -352,9 +442,11 @@ function OnboardingPage() {
     }
   }
 
+  const inputCls = 'border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]'
+  const labelCls = 'mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]'
+
   return (
     <div className="flex min-h-screen flex-col bg-[oklch(0.03_0_0)] text-[oklch(0.95_0_0)]">
-      {/* Top bar */}
       <nav className="flex items-center justify-between px-8 py-6 md:px-16">
         <Link to="/" className="flex items-center gap-2">
           <ArrowLeft className="h-4 w-4 text-[oklch(0.5_0_0)]" />
@@ -370,7 +462,6 @@ function OnboardingPage() {
 
       <div className="flex flex-1 items-center justify-center px-4 py-12">
         <Card className="w-full max-w-lg border-[oklch(0.15_0_0)] bg-[oklch(0.06_0_0)] p-8 md:p-10">
-          {/* Header */}
           <div className="mb-2 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[oklch(0.15_0_0)]">
               <Icon className="h-5 w-5 text-[oklch(0.7_0_0)]" />
@@ -381,7 +472,6 @@ function OnboardingPage() {
             </div>
           </div>
 
-          {/* Progress */}
           <div className="my-6 flex gap-2">
             {Array.from({ length: totalSteps }).map((_, i) => (
               <div
@@ -391,21 +481,21 @@ function OnboardingPage() {
             ))}
           </div>
 
-          {/* Step 1 - Org details (funder/nonprofit) */}
-          {step === 1 && type !== 'invited' && (
+          {/* ORG DETAILS */}
+          {currentStep === 'org' && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Tell us about your organization</h2>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Organization Name</label>
+                <label className={labelCls}>Organization Name</label>
                 <Input
                   value={form.orgName}
                   onChange={(e) => update('orgName', e.target.value)}
                   placeholder={type === 'funder' ? 'e.g. National Lotteries Commission' : 'e.g. Ubuntu Youth Foundation'}
-                  className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                  className={inputCls}
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Email</label>
+                <label className={labelCls}>Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
                   <Input
@@ -413,12 +503,12 @@ function OnboardingPage() {
                     onChange={(e) => update('email', e.target.value)}
                     placeholder="admin@organization.co.za"
                     type="email"
-                    className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                    className={`${inputCls} pl-10`}
                   />
                 </div>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Country</label>
+                <label className={labelCls}>Country</label>
                 <select
                   value={form.country}
                   onChange={(e) => update('country', e.target.value)}
@@ -429,21 +519,6 @@ function OnboardingPage() {
                   ))}
                 </select>
               </div>
-              {type === 'nonprofit' && (
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
-                    <Input
-                      value={form.phone}
-                      onChange={(e) => update('phone', e.target.value)}
-                      placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
-                      className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">Linked to your WhatsApp for document submissions</p>
-                </div>
-              )}
               {type === 'nonprofit' && form.country !== 'ZA' && (
                 <div className="rounded-xl border border-[oklch(0.2_0.05_60)] bg-[oklch(0.08_0.02_60)] p-4 space-y-3">
                   <p className="text-sm text-[oklch(0.85_0_0)]">
@@ -474,19 +549,62 @@ function OnboardingPage() {
                   </p>
                 </div>
               )}
-
             </div>
           )}
 
-          {/* Step 1 - Invited flow (token validated upstream) */}
-          {step === 1 && type === 'invited' && (
+          {/* REGISTRATION NUMBERS (nonprofit only) */}
+          {currentStep === 'registration' && (
+            <div className="space-y-5">
+              <div className="flex items-start gap-3">
+                <FileText className="mt-1 h-5 w-5 text-[oklch(0.6_0_0)]" />
+                <div>
+                  <h2 className="text-lg font-semibold">Registration numbers</h2>
+                  <p className="mt-1 text-sm text-[oklch(0.55_0_0)]">
+                    At least one registration number is required to use Spend4Good.
+                  </p>
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>NPO Registration Number</label>
+                <Input
+                  value={form.npoNumber}
+                  onChange={(e) => update('npoNumber', e.target.value)}
+                  placeholder="e.g. 123-456 NPO"
+                  className={inputCls}
+                />
+                <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">Issued by the Department of Social Development (DSD)</p>
+              </div>
+              <div>
+                <label className={labelCls}>PBO Number (optional if NPO number provided)</label>
+                <Input
+                  value={form.pboNumber}
+                  onChange={(e) => update('pboNumber', e.target.value)}
+                  placeholder="e.g. 930012345"
+                  className={inputCls}
+                />
+                <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">Public Benefit Organisation number issued by SARS. Required if you issue Section 18A tax certificates.</p>
+              </div>
+              {form.npoNumber.trim().length <= 2 && form.pboNumber.trim().length <= 2 && (
+                <p className="rounded-md border border-[oklch(0.2_0.05_60)] bg-[oklch(0.08_0.02_60)] px-3 py-2 text-xs text-[oklch(0.85_0_0)]">
+                  Please enter at least one registration number to continue.
+                </p>
+              )}
+              <div className="rounded-xl border border-[oklch(0.15_0_0)] bg-[oklch(0.04_0_0)] p-4">
+                <p className="text-xs text-[oklch(0.45_0_0)]">
+                  Our team verifies your registration against the NPO / SARS registries (usually within 1 business day). Your account works while verification is pending.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* INVITED WELCOME */}
+          {currentStep === 'welcome' && (
             <div className="space-y-5">
               {validatingInvite && (
                 <div className="flex items-center gap-2 text-sm text-[oklch(0.6_0_0)]">
                   <Loader2 className="h-4 w-4 animate-spin" /> Validating invitation…
                 </div>
               )}
-
               {invite && (
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold">You're invited!</h2>
@@ -512,8 +630,8 @@ function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2 - Personal details with email + phone */}
-          {step === 2 && (
+          {/* PERSONAL */}
+          {currentStep === 'personal' && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Your details</h2>
               {type !== 'funder' && (
@@ -522,20 +640,20 @@ function OnboardingPage() {
                 </p>
               )}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Full Name</label>
+                <label className={labelCls}>Full Name</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
                   <Input
                     value={form.fullName}
                     onChange={(e) => update('fullName', e.target.value)}
                     placeholder="Your full name"
-                    className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                    className={`${inputCls} pl-10`}
                   />
                 </div>
               </div>
               {type === 'invited' && (
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Email</label>
+                  <label className={labelCls}>Email</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
                     <Input
@@ -543,30 +661,28 @@ function OnboardingPage() {
                       onChange={(e) => update('email', e.target.value)}
                       placeholder="you@organization.co.za"
                       type="email"
-                      className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                      className={`${inputCls} pl-10`}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">
-                    Pre-filled from your invitation — edit if needed.
-                  </p>
+                  <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">Pre-filled from your invitation — edit if needed.</p>
                 </div>
               )}
               {type !== 'funder' && (
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
+                  <label className={labelCls}>Phone Number (WhatsApp)</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
                     <Input
                       value={form.phone}
                       onChange={(e) => update('phone', e.target.value)}
                       placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
-                      className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                      className={`${inputCls} pl-10`}
                     />
                   </div>
                 </div>
               )}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Password</label>
+                <label className={labelCls}>Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
                   <Input
@@ -574,7 +690,7 @@ function OnboardingPage() {
                     value={form.password}
                     onChange={(e) => update('password', e.target.value)}
                     placeholder="At least 8 characters"
-                    className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                    className={`${inputCls} pl-10`}
                   />
                 </div>
               </div>
@@ -583,12 +699,96 @@ function OnboardingPage() {
                   ? "You'll receive a confirmation email after sign-in."
                   : "You'll confirm your email and verify your WhatsApp number after sign-in."}
               </p>
-
             </div>
           )}
 
-          {/* Step 3 - Plan selection (only for self-reg) */}
-          {step === 3 && type !== 'invited' && (
+          {/* BILLING */}
+          {currentStep === 'billing' && (
+            <div className="space-y-5">
+              <div className="flex items-start gap-3">
+                <MapPin className="mt-1 h-5 w-5 text-[oklch(0.6_0_0)]" />
+                <div>
+                  <h2 className="text-lg font-semibold">Billing &amp; invoicing details</h2>
+                  <p className="mt-1 text-sm text-[oklch(0.55_0_0)]">
+                    These details appear on your payment confirmation and are used for tax purposes.
+                  </p>
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>Legal Organisation Name</label>
+                <Input
+                  value={form.billingLegalName}
+                  onChange={(e) => update('billingLegalName', e.target.value)}
+                  placeholder="Legal registered name"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Registered Address Line 1</label>
+                <Input value={form.addressLine1} onChange={(e) => update('addressLine1', e.target.value)} placeholder="Street address" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Address Line 2 <span className="text-[oklch(0.4_0_0)]">(optional)</span></label>
+                <Input value={form.addressLine2} onChange={(e) => update('addressLine2', e.target.value)} placeholder="Suite, unit, etc." className={inputCls} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>City</label>
+                  <Input value={form.city} onChange={(e) => update('city', e.target.value)} className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Province/State</label>
+                  <Input value={form.province} onChange={(e) => update('province', e.target.value)} className={inputCls} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Postal Code</label>
+                  <Input value={form.postalCode} onChange={(e) => update('postalCode', e.target.value)} className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Country</label>
+                  <select
+                    value={form.country}
+                    onChange={(e) => update('country', e.target.value)}
+                    className="h-10 w-full rounded-md border border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] px-3 text-sm text-[oklch(0.95_0_0)] focus:outline-none focus:ring-2 focus:ring-[oklch(0.3_0_0)]"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>VAT Number (if registered)</label>
+                <Input value={form.vatNumber} onChange={(e) => update('vatNumber', e.target.value)} placeholder="Optional" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Name of person authorising payment</label>
+                <Input value={form.signatoryName} onChange={(e) => update('signatoryName', e.target.value)} placeholder="Full name" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Title/Role</label>
+                <Input value={form.signatoryTitle} onChange={(e) => update('signatoryTitle', e.target.value)} placeholder="e.g. Executive Director, CFO" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Billing contact email</label>
+                <Input
+                  value={form.billingEmail}
+                  onChange={(e) => update('billingEmail', e.target.value)}
+                  placeholder="billing@organization.co.za"
+                  type="email"
+                  className={inputCls}
+                />
+                <p className="mt-1 text-xs text-[oklch(0.4_0_0)]">
+                  Invoice and payment confirmations are sent here. Can be different from your login email.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* PLAN */}
+          {currentStep === 'plan' && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Choose your plan</h2>
               <p className="text-xs text-[oklch(0.45_0_0)]">Annual plans, billed in USD. Cancel anytime before renewal.</p>
