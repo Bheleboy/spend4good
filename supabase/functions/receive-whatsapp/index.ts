@@ -36,12 +36,17 @@ async function sendTwilio(to: string, body: string) {
 
 function parseAmount(text: string): { amount: number | null; description: string } {
   if (!text) return { amount: null, description: '' }
-  // Match "R 250.00" / "R250" / "250 petrol" / "petrol R250"
-  const m = text.match(/(?:R\s*)?(\d+(?:[.,]\d{1,2})?)/i)
+  // Handles: R250, R 250.00, R1,500, R1 500, petrol R250, 250 petrol, R250,50 (EU decimal)
+  const m = text.match(
+    /(?:R\s*)?(\d{1,3}(?:[,\s]\d{3})+(?:\.\d{1,2})?|\d+\.\d{1,2}|\d+,\d{1,2}|\d+)/i,
+  )
   if (!m) return { amount: null, description: text.trim() }
-  const amount = parseFloat(m[1].replace(',', '.'))
+  let raw = m[1]
+  if (/[,\s]\d{3}/.test(raw)) raw = raw.replace(/[,\s]/g, '') // thousands separators
+  else if (/,\d{1,2}$/.test(raw)) raw = raw.replace(',', '.') // EU decimal comma
+  const amount = parseFloat(raw)
   const description = text.replace(m[0], '').replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim() || 'Expense'
-  return { amount, description }
+  return { amount: isNaN(amount) ? null : amount, description }
 }
 
 async function validateSignature(url: string, rawBody: string, signature: string | null): Promise<boolean> {
