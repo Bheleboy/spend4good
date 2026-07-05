@@ -60,7 +60,7 @@ export const PLANS: Plan[] = [
       'WhatsApp reporting',
     ],
     highlight: true,
-    paddlePriceId: '',
+    paddlePriceId: 'pro_01kwppa1z6q21fjcycvb8v8q5j',
   },
   {
     id: 'funder_growth',
@@ -76,7 +76,7 @@ export const PLANS: Plan[] = [
       'Advanced reporting & exports',
       'Priority support',
     ],
-    paddlePriceId: '',
+    paddlePriceId: 'pro_01kwppavr6g7hpef9gs93xt5xa',
   },
   {
     id: 'funder_unlimited',
@@ -93,7 +93,7 @@ export const PLANS: Plan[] = [
       'Dedicated support',
       'Early access to new jurisdiction compliance packs',
     ],
-    paddlePriceId: '',
+    paddlePriceId: 'pro_01kwppbnxzsn2avzev27zn30cj',
   },
 ]
 
