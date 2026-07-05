@@ -558,7 +558,9 @@ function OnboardingPage() {
                 </div>
               </div>
               <p className="text-xs text-[oklch(0.4_0_0)]">
-                You'll confirm your email and verify your WhatsApp number after sign-in.
+                {type === 'funder'
+                  ? "You'll receive a confirmation email after sign-in."
+                  : "You'll confirm your email and verify your WhatsApp number after sign-in."}
               </p>
 
             </div>
