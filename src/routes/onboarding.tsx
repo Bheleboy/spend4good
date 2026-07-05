@@ -409,9 +409,12 @@ function OnboardingPage() {
   }, [handleComplete])
 
   useEffect(() => {
+    console.log('Native fallback effect running', { step, totalSteps, matches: step === totalSteps })
     if (step !== totalSteps) return
     const findButton = (): HTMLButtonElement | null => {
       const all = Array.from(document.querySelectorAll('button'))
+      const texts = all.map((b) => b.innerText)
+      console.log('Native fallback button texts:', texts)
       return all.find((b) => b.innerText.includes('Create Account')) as HTMLButtonElement | null
     }
     let currentBtn: HTMLButtonElement | null = null
@@ -433,6 +436,7 @@ function OnboardingPage() {
       observer.disconnect()
     }
   }, [step, totalSteps])
+
 
 
 
