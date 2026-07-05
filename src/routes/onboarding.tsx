@@ -384,6 +384,7 @@ function OnboardingPage() {
         return
       }
 
+      toast.success('Account created! Complete payment to activate your subscription.')
       openCheckout({
         priceId,
         email: form.email,
