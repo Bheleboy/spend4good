@@ -414,12 +414,37 @@ function OnboardingPage() {
       const all = Array.from(document.querySelectorAll('button'))
       return all.find((b) => b.innerText.includes('Create Account')) as HTMLButtonElement | null
     }
-    const btn = findButton()
-    if (!btn) return
-    const listener = () => handleCompleteRef.current()
-    btn.addEventListener('click', listener)
-    return () => btn.removeEventListener('click', listener)
+    let attached = false
+    const attach = () => {
+      const btn = findButton()
+      if (btn && !attached) {
+        console.log('Native fallback: attaching listener to Create Account button')
+        btn.addEventListener('click', handleCompleteRef.current)
+        attached = true
+        return () => {
+          btn.removeEventListener('click', handleCompleteRef.current)
+          attached = false
+        }
+      }
+      return () => {}
+    }
+    const cleanup = attach()
+    // Re-attach if DOM changes (hydration may replace the button)
+    const observer = new MutationObserver(() => {
+      if (!findButton()) {
+        attached = false
+      } else if (!attached) {
+        cleanup()
+        attach()
+      }
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => {
+      cleanup()
+      observer.disconnect()
+    }
   }, [step, totalSteps])
+
 
 
   // ==== Invited flow: full-screen block when token missing OR invalid ====
