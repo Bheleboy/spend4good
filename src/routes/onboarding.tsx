@@ -414,36 +414,26 @@ function OnboardingPage() {
       const all = Array.from(document.querySelectorAll('button'))
       return all.find((b) => b.innerText.includes('Create Account')) as HTMLButtonElement | null
     }
-    let attached = false
+    let currentBtn: HTMLButtonElement | null = null
+    const listener = () => handleCompleteRef.current()
     const attach = () => {
       const btn = findButton()
-      if (btn && !attached) {
-        console.log('Native fallback: attaching listener to Create Account button')
-        btn.addEventListener('click', handleCompleteRef.current)
-        attached = true
-        return () => {
-          btn.removeEventListener('click', handleCompleteRef.current)
-          attached = false
-        }
+      if (btn && btn !== currentBtn) {
+        if (currentBtn) currentBtn.removeEventListener('click', listener)
+        currentBtn = btn
+        currentBtn.addEventListener('click', listener)
+        console.log('Native fallback: attached listener to Create Account button')
       }
-      return () => {}
     }
-    const cleanup = attach()
-    // Re-attach if DOM changes (hydration may replace the button)
-    const observer = new MutationObserver(() => {
-      if (!findButton()) {
-        attached = false
-      } else if (!attached) {
-        cleanup()
-        attach()
-      }
-    })
+    attach()
+    const observer = new MutationObserver(attach)
     observer.observe(document.body, { childList: true, subtree: true })
     return () => {
-      cleanup()
+      if (currentBtn) currentBtn.removeEventListener('click', listener)
       observer.disconnect()
     }
   }, [step, totalSteps])
+
 
 
 
