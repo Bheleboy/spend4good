@@ -192,8 +192,10 @@ function OnboardingPage() {
   }
 
   const handleComplete = async () => {
+    console.log('handleComplete called', { type, step, totalSteps, loading })
     setLoading(true)
     try {
+
       // === Invited flow ===
       if (type === 'invited') {
         if (!invite) {
