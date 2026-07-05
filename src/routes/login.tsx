@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Mail, Lock, ArrowLeft } from 'lucide-react'
@@ -10,6 +10,9 @@ import { toast } from 'sonner'
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
+  validateSearch: (search: Record<string, unknown>): { checkout?: string } => ({
+    checkout: typeof search.checkout === 'string' ? search.checkout : undefined,
+  }),
   head: () => ({
     meta: [
       { title: 'Sign In — Spend4Good' },
