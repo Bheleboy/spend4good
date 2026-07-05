@@ -42,6 +42,7 @@ function OnboardingPage() {
   const { type, token } = Route.useSearch()
   const navigate = useNavigate()
   const { isSA } = useCountry()
+  const { openCheckout } = usePaddle()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
 
