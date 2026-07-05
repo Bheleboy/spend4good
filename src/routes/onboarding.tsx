@@ -402,6 +402,26 @@ function OnboardingPage() {
     setLoading(false)
   }
 
+  // Native fallback for Create Account button when React hydration is flaky
+  const handleCompleteRef = useRef(handleComplete)
+  useEffect(() => {
+    handleCompleteRef.current = handleComplete
+  }, [handleComplete])
+
+  useEffect(() => {
+    if (step !== totalSteps) return
+    const findButton = (): HTMLButtonElement | null => {
+      const all = Array.from(document.querySelectorAll('button'))
+      return all.find((b) => b.innerText.includes('Create Account')) as HTMLButtonElement | null
+    }
+    const btn = findButton()
+    if (!btn) return
+    const listener = () => handleCompleteRef.current()
+    btn.addEventListener('click', listener)
+    return () => btn.removeEventListener('click', listener)
+  }, [step, totalSteps])
+
+
   // ==== Invited flow: full-screen block when token missing OR invalid ====
   if (type === 'invited') {
     const showMissingToken = !token
