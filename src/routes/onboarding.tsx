@@ -530,18 +530,20 @@ function OnboardingPage() {
                   </p>
                 </div>
               )}
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
-                  <Input
-                    value={form.phone}
-                    onChange={(e) => update('phone', e.target.value)}
-                    placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
-                    className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
-                  />
+              {type !== 'funder' && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Phone Number (WhatsApp)</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[oklch(0.35_0_0)]" />
+                    <Input
+                      value={form.phone}
+                      onChange={(e) => update('phone', e.target.value)}
+                      placeholder="+27 82 123 4567 (SA) or +1 212 555 1234 (International)"
+                      className="border-[oklch(0.2_0_0)] bg-[oklch(0.08_0_0)] pl-10 text-[oklch(0.95_0_0)] placeholder:text-[oklch(0.3_0_0)]"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Password</label>
                 <div className="relative">
