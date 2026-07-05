@@ -19,6 +19,7 @@ type StepKind = 'welcome' | 'org' | 'registration' | 'personal' | 'billing' | 'p
 
 export const Route = createFileRoute('/onboarding')({
   component: OnboardingPage,
+  ssr: false,
   validateSearch: (search: Record<string, unknown>): { type: OnboardingType; token?: string } => ({
     type: (search.type as OnboardingType) || 'nonprofit',
     token: typeof search.token === 'string' ? search.token : undefined,
@@ -30,6 +31,7 @@ export const Route = createFileRoute('/onboarding')({
     ],
   }),
 })
+
 
 interface InviteInfo {
   id: string
