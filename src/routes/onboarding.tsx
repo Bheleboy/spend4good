@@ -242,8 +242,8 @@ function OnboardingPage() {
 
       const { error: userError } = await supabase.from('users').insert({
         id: authUserId,
-        phone_number: form.phone,
-        whatsapp_number: form.phone,
+        phone_number: type === 'funder' ? null : form.phone,
+        whatsapp_number: type === 'funder' ? null : form.phone,
         org_id: org.id,
         role,
         full_name: form.fullName,
