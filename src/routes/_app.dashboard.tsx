@@ -97,6 +97,15 @@ function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {showPendingBanner && (
+        <Card className="border-warning/30 bg-warning/10 p-4 text-sm text-foreground">
+          <p>
+            <strong>Complete your account setup</strong> — your payment is pending. Check your email or visit{' '}
+            <Link to="/settings" className="underline">/settings</Link> to manage billing.
+          </p>
+        </Card>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
