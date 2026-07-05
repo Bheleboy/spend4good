@@ -19,6 +19,9 @@ export interface AuthUser {
     type?: string | null
     subscription_plan?: string | null
     country?: string | null
+    is_verified?: boolean
+    npo_registration_number?: string | null
+    pbo_number?: string | null
   }
 }
 
@@ -54,9 +57,12 @@ export async function loadProfile(authUserId: string, fallbackEmail?: string | n
           name: data.organizations.name,
           slug: data.organizations.slug,
           subscription_tier: data.organizations.subscription_tier,
-          type: data.organizations.type ?? null,
-          subscription_plan: data.organizations.subscription_plan ?? null,
-          country: data.organizations.country ?? null,
+          type: (data.organizations as any).type ?? null,
+          subscription_plan: (data.organizations as any).subscription_plan ?? null,
+          country: (data.organizations as any).country ?? null,
+          is_verified: (data.organizations as any).is_verified ?? false,
+          npo_registration_number: (data.organizations as any).npo_registration_number ?? null,
+          pbo_number: (data.organizations as any).pbo_number ?? null,
         }
       : undefined,
   }
