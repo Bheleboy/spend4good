@@ -495,9 +495,11 @@ function OnboardingPage() {
           {step === 2 && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold">Your details</h2>
-              <p className="text-xs text-[oklch(0.45_0_0)]">
-                Your phone number will be linked to WhatsApp for document submissions.
-              </p>
+              {type !== 'funder' && (
+                <p className="text-xs text-[oklch(0.45_0_0)]">
+                  Your phone number will be linked to WhatsApp for document submissions.
+                </p>
+              )}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[oklch(0.7_0_0)]">Full Name</label>
                 <div className="relative">
