@@ -8,7 +8,7 @@ const supabase = createClient(
 async function testConstraint(email: string, role: 'funder_admin' | 'admin') {
   const ts = Date.now()
   const testEmail = `${email}-${ts}@example.com`
-  const password = 'TestPass123!'
+  const password = 'SecureP@ssw0rd2024!x7'
 
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: testEmail,
