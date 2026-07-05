@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { signUpWithPassword } from '@/lib/auth'
 import { plansForAudience, formatPriceLocalized, type PlanId } from '@/lib/pricing'
 import { useCountry } from '@/hooks/use-country'
+import { usePaddle } from '@/hooks/use-paddle'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
 
