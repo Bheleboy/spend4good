@@ -266,14 +266,8 @@ function OnboardingPage() {
       const plan = planFor()
       const slug = form.orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
-      const { data: authData, error: authError } = await signUpWithPassword(form.email, form.password, form.fullName)
-      if (authError || !authData.user) {
-        toast.error(authError?.message || 'Failed to create account')
-        setLoading(false)
-        return
-      }
-      const authUserId = authData.user.id
-
+      // 1) Insert organization FIRST — bail early if this fails so we don't
+      //    waste an auth confirmation email on a broken signup.
       const orgInsert: Record<string, any> = {
         name: form.orgName,
         slug: slug || 'org-' + Date.now(),
@@ -301,30 +295,7 @@ function OnboardingPage() {
         return
       }
 
-      const { error: userError } = await supabase.from('users').insert({
-        id: authUserId,
-        phone_number: type === 'funder' ? null : form.phone,
-        whatsapp_number: type === 'funder' ? null : form.phone,
-        org_id: org.id,
-        role,
-        full_name: form.fullName,
-        email: form.email,
-        is_active: true,
-      })
-
-      if (userError) {
-        toast.error('Failed to create profile: ' + userError.message)
-        setLoading(false)
-        return
-      }
-
-      await supabase.from('user_roles').insert({
-        user_id: authUserId,
-        role,
-        org_id: org.id,
-      })
-
-      // Billing details (both funder + nonprofit self-reg)
+      // 2) Insert billing details
       const { error: billingError } = await supabase.from('billing_details').insert({
         org_id: org.id,
         legal_name: form.billingLegalName || form.orgName,
@@ -342,6 +313,41 @@ function OnboardingPage() {
       if (billingError) {
         console.warn('billing_details insert failed', billingError)
       }
+
+      // 3) Create auth user LAST — confirmation email only fires if org
+      //    creation above already succeeded.
+      const { data: authData, error: authError } = await signUpWithPassword(form.email, form.password, form.fullName)
+      if (authError || !authData.user) {
+        toast.error(authError?.message || 'Failed to create account')
+        setLoading(false)
+        return
+      }
+      const authUserId = authData.user.id
+
+      // 4) Insert users profile row
+      const { error: userError } = await supabase.from('users').insert({
+        id: authUserId,
+        phone_number: type === 'funder' ? null : form.phone,
+        whatsapp_number: type === 'funder' ? null : form.phone,
+        org_id: org.id,
+        role,
+        full_name: form.fullName,
+        email: form.email,
+        is_active: true,
+      })
+
+      if (userError) {
+        toast.error('Failed to create profile: ' + userError.message)
+        setLoading(false)
+        return
+      }
+
+      // 5) Insert user_roles row
+      await supabase.from('user_roles').insert({
+        user_id: authUserId,
+        role,
+        org_id: org.id,
+      })
 
       try {
         await supabase.functions.invoke('send-welcome', {
