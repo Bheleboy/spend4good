@@ -1,4 +1,4 @@
-project_id = "wyduakldroqavjaplodc"
+project_id = "rpkivjzkgmfwnitjdmcv"
 
 [functions.send-invite]
 verify_jwt = true
@@ -29,5 +29,3 @@ verify_jwt = false
 
 [functions.send-payment-confirmation]
 verify_jwt = true
-
-
