@@ -6,12 +6,10 @@ export function useCountry() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Use Cloudflare's free country detection via a lightweight fetch
-    // Falls back to SA if detection fails
-    fetch('https://cloudflare-quic.com/b/headers')
+    fetch('https://ipapi.co/json/')
       .then((r) => r.json())
       .then((data: any) => {
-        const cc = data?.headers?.['cf-ipcountry'] ?? 'ZA'
+        const cc = data?.country_code ?? 'ZA'
         setCountry(cc)
         setIsSA(cc === 'ZA')
       })
