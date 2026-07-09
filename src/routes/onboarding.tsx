@@ -266,56 +266,7 @@ function OnboardingPage() {
       const plan = planFor()
       const slug = form.orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
-      // 1) Insert organization FIRST — bail early if this fails so we don't
-      //    waste an auth confirmation email on a broken signup.
-      const orgInsert: Record<string, any> = {
-        name: form.orgName,
-        slug: slug || 'org-' + Date.now(),
-        country: form.country,
-        onboarding_status: 'pending',
-        subscription_tier: plan,
-        type: orgType,
-        subscription_plan: plan,
-      }
-      if (type === 'nonprofit') {
-        orgInsert.npo_registration_number = form.npoNumber || null
-        orgInsert.pbo_number = form.pboNumber || null
-        orgInsert.is_verified = false
-      }
-
-      const { data: org, error: orgError } = await supabase
-        .from('organizations')
-        .insert(orgInsert)
-        .select()
-        .single()
-
-      if (orgError) {
-        toast.error('Failed to create organization: ' + orgError.message)
-        setLoading(false)
-        return
-      }
-
-      // 2) Insert billing details
-      const { error: billingError } = await supabase.from('billing_details').insert({
-        org_id: org.id,
-        legal_name: form.billingLegalName || form.orgName,
-        address_line1: form.addressLine1,
-        address_line2: form.addressLine2 || null,
-        city: form.city,
-        province: form.province || null,
-        postal_code: form.postalCode,
-        country: form.country,
-        vat_number: form.vatNumber || null,
-        signatory_name: form.signatoryName,
-        signatory_title: form.signatoryTitle,
-        billing_email: form.billingEmail || form.email,
-      })
-      if (billingError) {
-        console.warn('billing_details insert failed', billingError)
-      }
-
-      // 3) Create auth user LAST — confirmation email only fires if org
-      //    creation above already succeeded.
+      // 1) Create auth user FIRST
       const { data: authData, error: authError } = await signUpWithPassword(form.email, form.password, form.fullName)
       if (authError || !authData.user) {
         toast.error(authError?.message || 'Failed to create account')
@@ -324,44 +275,45 @@ function OnboardingPage() {
       }
       const authUserId = authData.user.id
 
-      // 4) Insert users profile row
-      const { error: userError } = await supabase.from('users').insert({
-        id: authUserId,
-        phone_number: type === 'funder' ? null : form.phone,
-        whatsapp_number: type === 'funder' ? null : form.phone,
-        org_id: org.id,
-        role,
-        full_name: form.fullName,
-        email: form.email,
-        is_active: true,
+      // 2) Call create-account edge function to handle all DB inserts server-side
+      const { data: result, error: createError } = await supabase.functions.invoke('create-account', {
+        body: {
+          auth_user_id: authUserId,
+          org_name: form.orgName,
+          slug: slug || 'org-' + Date.now(),
+          country: form.country,
+          org_type: orgType,
+          subscription_plan: plan,
+          role,
+          full_name: form.fullName,
+          email: form.email,
+          phone: form.phone || null,
+          npo_registration_number: form.npoNumber || null,
+          pbo_number: form.pboNumber || null,
+          billing: {
+            legal_name: form.billingLegalName || form.orgName,
+            address_line1: form.addressLine1,
+            address_line2: form.addressLine2 || null,
+            city: form.city,
+            province: form.province || null,
+            postal_code: form.postalCode,
+            country: form.country,
+            vat_number: form.vatNumber || null,
+            signatory_name: form.signatoryName,
+            signatory_title: form.signatoryTitle,
+            billing_email: form.billingEmail || form.email,
+          },
+        },
       })
 
-      if (userError) {
-        toast.error('Failed to create profile: ' + userError.message)
+      if (createError || !(result as any)?.ok) {
+        const msg = (result as any)?.error || createError?.message || 'Failed to create account'
+        toast.error(msg)
         setLoading(false)
         return
       }
 
-      // 5) Insert user_roles row
-      await supabase.from('user_roles').insert({
-        user_id: authUserId,
-        role,
-        org_id: org.id,
-      })
-
-      try {
-        await supabase.functions.invoke('send-welcome', {
-          body: {
-            full_name: form.fullName,
-            email: form.email,
-            org_name: form.orgName,
-            account_type: orgType,
-            org_id: org.id,
-          },
-        })
-      } catch (e) {
-        console.warn('welcome email failed', e)
-      }
+      const orgId = (result as any).org_id
 
       // Admin notification for new unverified NPO
       if (type === 'nonprofit') {
@@ -396,7 +348,7 @@ function OnboardingPage() {
           priceId,
           email: form.email,
           customData: {
-            org_id: org.id,
+            org_id: orgId,
             plan_id: selectedPlanObj.id,
             user_id: authUserId,
           },
