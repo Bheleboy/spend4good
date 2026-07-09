@@ -391,25 +391,32 @@ function OnboardingPage() {
       }
 
       toast.success('Account created! Complete payment to activate your subscription.')
-      openCheckout({
-        priceId,
-        email: form.email,
-        customData: {
-          org_id: org.id,
-          plan_id: selectedPlanObj.id,
-          user_id: authUserId,
-        },
-        billingDetails: {
-          addressLine1: form.addressLine1,
-          city: form.city,
-          postalCode: form.postalCode,
-          country: form.country,
-        },
-      })
-    } catch {
-      toast.error('Something went wrong. Please try again.')
+      try {
+        openCheckout({
+          priceId,
+          email: form.email,
+          customData: {
+            org_id: org.id,
+            plan_id: selectedPlanObj.id,
+            user_id: authUserId,
+          },
+          billingDetails: {
+            addressLine1: form.addressLine1,
+            city: form.city,
+            postalCode: form.postalCode,
+            country: form.country,
+          },
+        })
+      } catch (paddleErr) {
+        console.error('Paddle checkout error:', paddleErr)
+        toast.success('Account created! Check your email to confirm, then sign in.')
+        navigate({ to: '/login' })
+      }
+    } catch (err) {
+      console.error('handleComplete error:', err)
+      toast.error('Something went wrong: ' + ((err as Error)?.message || 'Unknown error'))
+      setLoading(false)
     }
-    setLoading(false)
   }
 
 
