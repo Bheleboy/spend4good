@@ -223,6 +223,16 @@ function ProjectDetailPage() {
           )}
         </TabsContent>
 
+        <TabsContent value="photos" className="mt-4">
+          <PhotosTab
+            projectId={id}
+            projectName={project.name}
+            activityCategories={project.activity_categories ?? []}
+            members={members}
+            onCountChange={setPhotoCount}
+          />
+        </TabsContent>
+
         <TabsContent value="report" className="mt-4">
           <ProjectReport projectId={id} />
         </TabsContent>
