@@ -73,12 +73,17 @@ export function ProjectWizard({ open, onOpenChange, onCreated }: Props) {
       const [u, f] = await Promise.all([
         supabase.from('users').select('id, full_name, email, whatsapp_number, phone_number')
           .eq('org_id', user.org_id).eq('is_active', true),
-        supabase.from('funder_nonprofits')
-          .select('funder_id, status, funder:organizations!funder_nonprofits_funder_id_fkey(id, name)')
+        supabase.from('funder_nonprofits').select('funder_id, status')
           .eq('nonprofit_id', user.org_id).eq('status', 'accepted'),
       ])
       setOrgUsers(u.data ?? [])
-      setFunders((f.data ?? []).filter((x: any) => x.funder))
+      const funderIds = (f.data ?? []).map((r: any) => r.funder_id)
+      if (funderIds.length > 0) {
+        const { data: orgs } = await supabase.from('organizations').select('id, name').in('id', funderIds)
+        setFunders((orgs ?? []).map((o: any) => ({ funder_id: o.id, funder: { id: o.id, name: o.name } })))
+      } else {
+        setFunders([])
+      }
     })()
   }, [open, user?.org_id])
 
