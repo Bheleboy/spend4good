@@ -30,6 +30,7 @@ function ProjectDetailPage() {
   const [approvedTotal, setApprovedTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [expFilter, setExpFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending')
+  const [photoCount, setPhotoCount] = useState(0)
 
   const [addOpen, setAddOpen] = useState(false)
   const [addUserId, setAddUserId] = useState<string>('')
