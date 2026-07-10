@@ -39,11 +39,12 @@ function ProjectDetailPage() {
   const canManage = user?.role === 'admin' || user?.role === 'director'
 
   const load = async () => {
-    const [p, m, u, e] = await Promise.all([
+    const [p, m, u, e, pc] = await Promise.all([
       supabase.from('projects').select('*').eq('id', id).single(),
       supabase.from('project_members').select('*, user:users(id, full_name, email, whatsapp_number, phone_number)').eq('project_id', id).order('added_at', { ascending: false }),
       user?.org_id ? supabase.from('users').select('id, full_name, email').eq('org_id', user.org_id).eq('is_active', true) : Promise.resolve({ data: [] } as any),
       supabase.from('expenses').select('*, submitted_by_user:users!expenses_submitted_by_fkey(full_name), approved_by_user:users!expenses_approved_by_fkey(full_name), project:projects(name)').eq('project_id', id).order('submitted_at', { ascending: false }),
+      supabase.from('project_photos').select('id', { count: 'exact', head: true }).eq('project_id', id),
     ])
     setProject(p.data)
     setMembers(m.data ?? [])
@@ -51,6 +52,7 @@ function ProjectDetailPage() {
     const exps = (e.data as any) ?? []
     setExpenses(exps)
     setApprovedTotal(exps.filter((x: any) => x.status === 'approved').reduce((s: number, x: any) => s + Number(x.amount), 0))
+    setPhotoCount((pc as any)?.count ?? 0)
     setLoading(false)
   }
 
