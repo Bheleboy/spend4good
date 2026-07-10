@@ -1,72 +1,50 @@
-# Final Spend4Good Build Plan
+## Scope
 
-This is a large multi-part build. I'll do it in the strict order you specified, migrations first so types regenerate before the UI code that depends on them.
+Large multi-part build. Before implementing I need to confirm scope and one schema decision.
 
-## Prerequisite: secrets
+## Database changes required (new migration)
 
-Before Part 2 can run end-to-end, you must add these in **Project Settings → Secrets**:
-- `TWILIO_ACCOUNT_SID`
-- `TWILIO_AUTH_TOKEN`
-- `TWILIO_WHATSAPP_FROM` (e.g. `whatsapp:+14155238886`)
-- `TWILIO_WEBHOOK_URL` (the full deployed URL of the `receive-whatsapp` function)
+Neither table/column exists yet:
 
-I'll build the pipeline regardless; without secrets it just won't send/receive live messages. The simulated CHECK 2 test doesn't need them.
+1. `projects` needs new columns: `activity_categories text[] not null default '{}'`, `province text`, `location_description text`.
+2. `project_photos` table (referenced by receive-whatsapp function but not created):
+   - `id, org_id, project_id, submitted_by (uuid, null), submitted_by_name text, file_path text, storage_url text, label text, activity text, source text, message_sid text, taken_at timestamptz, created_at`
+   - RLS: org members can select; service_role full access
+   - GRANTs on all new tables
 
-I also need to confirm one schema assumption:
+Note: existing `projects` uses column `budget` (not `budget_amount`) and has no `currency` column, yet `src/routes/_app.projects.tsx` inserts `budget_amount` + `currency`. That's a pre-existing bug — I'll align the wizard with the real column (`budget`) and skip currency (or add a currency column — tell me which).
 
-**Assumption:** The `expenses` table already has: `project_id, org_id, submitted_by, amount, currency, description, category, receipt_url, status, submitted_at, approved_by, approved_at, rejection_reason`. If any of these are missing, I'll add them in the Part 1 migration. Same for `users.whatsapp_number` — I'll add it if missing.
+## Part 1 — Wizard component
 
----
+New `src/components/ProjectWizard.tsx` — full-screen `Dialog` with 5 steps and a stepper header. Replaces the inline Create dialog in `src/routes/_app.projects.tsx` and is also mountable from the project detail page.
 
-## Part 1 — Project staff (migration + project detail page)
+- Step 1: name, description, funder select (from `funder_nonprofits` where `nonprofit_id = current org`), start/end dates, budget, province (9 SA provinces hardcoded), location description.
+- Step 2: activity tag input with 8 suggested chips + `@dnd-kit/sortable` for reorder (already fits, small dep — will add).
+- Step 3: two subsections. Section A: select existing active org user + role. Section B: create new user (full_name, whatsapp_number, role=field_agent). Pending list with remove.
+- Step 4: read-only review with per-section Edit (jumps back to step).
+- Step 5: success screen with invited-agent list, share-message copy button, "Go to Project" link.
 
-**Migration `20260704_project_members_and_whatsapp.sql`:**
-- `CREATE TABLE public.project_members` per your spec + GRANTs + RLS.
-- `CREATE TABLE public.whatsapp_messages` (moved here from Part 2 so it's ready) + GRANTs + RLS.
-- Add missing columns if needed: `users.whatsapp_number text`, `expenses.rejection_reason text`, `expenses.whatsapp_message_id text`, `expenses.approved_by uuid`, `expenses.approved_at timestamptz`, `expenses.submitted_at timestamptz`.
+Submit: insert project → for existing users insert `project_members` → for new agents insert `users` then `project_members` → invoke `send-project-invite` for each new agent → advance to step 5.
 
-**`src/routes/_app.projects.$id.tsx`:** rebuild with 4 tabs (Overview, Team, Expenses, Report). Team tab uses a Dialog with a Select of active org users and role dropdown, inserting into `project_members`. Expenses tab reuses the expense card component from Part 3. Report tab embeds the `ReportView` component from Part 4.
+## Part 2 — `send-project-invite` edge function
 
-## Part 2 — Twilio WhatsApp pipeline
+`supabase/functions/send-project-invite/index.ts`. Reads `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM`. POSTs form-encoded to Twilio Messages API. `verify_jwt = true` in `supabase/config.toml`.
 
-**`supabase/functions/receive-whatsapp/index.ts`:** signature validation (HMAC-SHA1 as specified), lookup by `whatsapp_number` via service role, project matching (single/multi/hint), regex amount parsing (`R?\s*(\d+(?:\.\d+)?)`), media download with Twilio Basic Auth, upload to `compliance-docs/{org_id}/receipts/`, insert expense + whatsapp_messages rows, Twilio REST reply, fire `send-expense-notification` if funder linked.
+## Part 3 — Photos tab on `src/routes/_app.projects.$id.tsx`
 
-**`supabase/config.toml`:** add `[functions.receive-whatsapp] verify_jwt = false`.
+New "Photos" tab with count badge. Filters: activity (from project's `activity_categories`), agent (from project members), date range, clear filters. Grid 1/2/3 col responsive. Click opens lightbox (Dialog). Empty state text as specified.
 
-## Part 3 — Expense approval page
+"Share Update" modal: renders a 2×3 grid on `<canvas>` using the 6 most-recent `storage_url` images (loaded with `crossOrigin='anonymous'`), overlays project name + date, download-as-JPG, and copy-share-message.
 
-Replace `src/routes/_app.expenses.tsx` ComingSoon with full UI: status tabs, search, project filter, date range, expense cards with agent/project/amount/receipt thumbnail/status, approve/reject actions (role-gated), reject-reason modal, receipt lightbox modal, `?highlight=` scroll+ring.
+## Part 4 — Projects list
 
-## Part 4 — Report
+Add camera icon + photo count per project row (single grouped count query on mount).
 
-**`src/components/ProjectReport.tsx`** (reusable): date range picker (default last 30 days), 4 summary cards, per-agent breakdown table (expandable rows), category breakdown, recharts timeline (stacked bar by status), full expense log table (sortable, searchable), Export CSV button, Export PDF button (via `window.print()` with print styles — no new deps).
+## Confirm before I build
 
-Embedded in project detail Tab 4. Also wired into `/reports` — I'll check `_app.compliance.reports.tsx` first; if it's the compliance one I'll leave it and add a new `_app.reports.tsx` with a project picker + ReportView.
+1. **Currency**: drop the currency field entirely (schema has no column), or add a `currency text default 'ZAR'` column?
+2. **Funder dropdown source**: use `funder_nonprofits` joined to `organizations` where `nonprofit_id = current org` and `status = 'accepted'`? (Assumed yes.)
+3. **New field agent without email**: `users.email` is likely NOT NULL. I'll generate a placeholder `wa-<phone>@spend4good.local` unless you prefer another convention.
+4. **Share Update canvas**: photos are served from `compliance-docs` bucket with 1-year signed URLs — canvas export requires CORS on the storage bucket. If CORS blocks `toDataURL`, download will fail. OK to proceed and note the limitation?
 
-## Part 5 — WhatsApp log page
-
-Replace `src/routes/_app.whatsapp.tsx` ComingSoon: table of `whatsapp_messages` with matched/unmatched badges, media thumbnails, filters (All/Matched/Unmatched/With Media, date range), "Add this number" button that navigates to `/users?add=+27...` (Users page reads the query and pre-opens the add modal).
-
-## Part 6 — Users page updates
-
-`src/routes/_app.users.tsx`: add `whatsapp_number` column with green icon or yellow "not set" badge + inline edit; add info notice in the add-user modal referencing `TWILIO_WHATSAPP_FROM` (read from `import.meta.env.VITE_TWILIO_WHATSAPP_FROM` if present, else literal placeholder); "Test Number" button; read `?add=` query param to pre-fill form.
-
-Note: `TWILIO_WHATSAPP_FROM` is server-only. To display it, I'll expose a public copy as `VITE_TWILIO_WHATSAPP_FROM` (or hardcode the display value). I'll add a small server fn `getTwilioFromNumber` instead — cleaner and no new secret.
-
-## Part 7 — Dashboard
-
-`src/routes/_app.dashboard.tsx`: swap static `monthlyData` for real query grouped by month over last 6 months (approved only); update tooltip formatter; add "Recent Expenses" section (last 5 pending) linking to `/expenses?highlight=id`.
-
-## Part 8 — Validation
-
-Run all 8 checks. CHECK 2 via `curl` to the local edge function with a test payload (signature check skipped by setting a `?test=1` bypass **only** when `Deno.env.get('ALLOW_TEST_PAYLOAD') === 'true'` — I will NOT add this; instead I'll compute a valid signature in the test script). CHECKs 3–8 via Playwright + psql inspection. I'll report pass/fail per check and fix any failures before finishing.
-
----
-
-## Scope notes
-
-- No new npm dependencies expected (recharts, date-fns, lucide, sonner, shadcn already present).
-- I will NOT modify `supabase/config.toml` project-level settings, only add the function block.
-- I will not touch auth-managed schemas or generated files.
-
-Reply "go" to proceed, or tell me what to change.
+Reply "go" (with any tweaks to the 4 points) and I'll ship all parts in one pass.
