@@ -11,9 +11,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
-import { ArrowLeft, Plus, Users, DollarSign, MessageCircle, FileBarChart, Trash2 } from 'lucide-react'
+import { ArrowLeft, Camera, Plus, Users, DollarSign, MessageCircle, FileBarChart, Trash2 } from 'lucide-react'
 import { ExpenseCard, type ExpenseRow } from '@/components/ExpenseCard'
 import { ProjectReport } from '@/components/ProjectReport'
+import { PhotosTab } from '@/components/PhotosTab'
 
 export const Route = createFileRoute('/_app/projects/$id')({
   component: ProjectDetailPage,
@@ -29,6 +30,7 @@ function ProjectDetailPage() {
   const [approvedTotal, setApprovedTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [expFilter, setExpFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending')
+  const [photoCount, setPhotoCount] = useState(0)
 
   const [addOpen, setAddOpen] = useState(false)
   const [addUserId, setAddUserId] = useState<string>('')
@@ -37,11 +39,12 @@ function ProjectDetailPage() {
   const canManage = user?.role === 'admin' || user?.role === 'director'
 
   const load = async () => {
-    const [p, m, u, e] = await Promise.all([
+    const [p, m, u, e, pc] = await Promise.all([
       supabase.from('projects').select('*').eq('id', id).single(),
       supabase.from('project_members').select('*, user:users(id, full_name, email, whatsapp_number, phone_number)').eq('project_id', id).order('added_at', { ascending: false }),
       user?.org_id ? supabase.from('users').select('id, full_name, email').eq('org_id', user.org_id).eq('is_active', true) : Promise.resolve({ data: [] } as any),
       supabase.from('expenses').select('*, submitted_by_user:users!expenses_submitted_by_fkey(full_name), approved_by_user:users!expenses_approved_by_fkey(full_name), project:projects(name)').eq('project_id', id).order('submitted_at', { ascending: false }),
+      supabase.from('project_photos').select('id', { count: 'exact', head: true }).eq('project_id', id),
     ])
     setProject(p.data)
     setMembers(m.data ?? [])
@@ -49,6 +52,7 @@ function ProjectDetailPage() {
     const exps = (e.data as any) ?? []
     setExpenses(exps)
     setApprovedTotal(exps.filter((x: any) => x.status === 'approved').reduce((s: number, x: any) => s + Number(x.amount), 0))
+    setPhotoCount((pc as any)?.count ?? 0)
     setLoading(false)
   }
 
@@ -92,6 +96,10 @@ function ProjectDetailPage() {
           <TabsTrigger value="overview"><DollarSign className="mr-1 h-4 w-4" />Overview</TabsTrigger>
           <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" />Team</TabsTrigger>
           <TabsTrigger value="expenses"><MessageCircle className="mr-1 h-4 w-4" />Expenses</TabsTrigger>
+          <TabsTrigger value="photos">
+            <Camera className="mr-1 h-4 w-4" />Photos
+            {photoCount > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5">{photoCount}</Badge>}
+          </TabsTrigger>
           <TabsTrigger value="report"><FileBarChart className="mr-1 h-4 w-4" />Report</TabsTrigger>
         </TabsList>
 
@@ -213,6 +221,16 @@ function ProjectDetailPage() {
               {filteredExp.map((e) => <ExpenseCard key={e.id} expense={e} onChange={load} showProject={false} />)}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="photos" className="mt-4">
+          <PhotosTab
+            projectId={id}
+            projectName={project.name}
+            activityCategories={project.activity_categories ?? []}
+            members={members}
+            onCountChange={setPhotoCount}
+          />
         </TabsContent>
 
         <TabsContent value="report" className="mt-4">

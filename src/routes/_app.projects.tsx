@@ -6,11 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase'
-import { Plus, Search } from 'lucide-react'
-import { toast } from 'sonner'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Camera, Plus, Search } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ProjectWizard } from '@/components/ProjectWizard'
 
 export const Route = createFileRoute('/_app/projects')({
   component: ProjectsPage,
@@ -19,43 +18,37 @@ export const Route = createFileRoute('/_app/projects')({
 function ProjectsPage() {
   const { user, can } = useAuth()
   const [projects, setProjects] = useState<any[]>([])
+  const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [form, setForm] = useState({ name: '', description: '', budget_amount: '', currency: 'ZAR', start_date: '', end_date: '' })
+  const [wizardOpen, setWizardOpen] = useState(false)
 
   const loadProjects = async () => {
     if (!user) return
     let q = supabase.from('projects').select('*').eq('org_id', user.org_id).order('created_at', { ascending: false })
     if (statusFilter !== 'all') q = q.eq('status', statusFilter)
     const { data } = await q
-    setProjects(data || [])
+    const list = data || []
+    setProjects(list)
     setLoading(false)
+
+    if (list.length > 0) {
+      const { data: pc } = await supabase
+        .from('project_photos')
+        .select('project_id')
+        .in('project_id', list.map((p: any) => p.id))
+      const counts: Record<string, number> = {}
+      for (const row of (pc ?? []) as any[]) counts[row.project_id] = (counts[row.project_id] ?? 0) + 1
+      setPhotoCounts(counts)
+    } else {
+      setPhotoCounts({})
+    }
   }
 
   useEffect(() => { loadProjects() }, [user, statusFilter])
 
   const filtered = projects.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()))
-
-  const handleCreate = async () => {
-    if (!form.name) { toast.error('Name is required'); return }
-    const { error } = await supabase.from('projects').insert({
-      org_id: user!.org_id,
-      name: form.name,
-      description: form.description || null,
-      budget_amount: parseFloat(form.budget_amount) || 0,
-      currency: form.currency,
-      start_date: form.start_date || null,
-      end_date: form.end_date || null,
-      status: 'active',
-    })
-    if (error) { toast.error(error.message); return }
-    toast.success('Project created!')
-    setDialogOpen(false)
-    setForm({ name: '', description: '', budget_amount: '', currency: 'ZAR', start_date: '', end_date: '' })
-    loadProjects()
-  }
 
   const statusColor: Record<string, string> = {
     active: 'bg-success text-success-foreground',
@@ -68,52 +61,13 @@ function ProjectsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Projects</h1>
         {can('create_project') && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="mr-1 h-4 w-4" /> Create Project</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Create Project</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Name *</label>
-                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Description</label>
-                  <textarea className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Budget</label>
-                    <Input type="number" value={form.budget_amount} onChange={e => setForm(f => ({ ...f, budget_amount: e.target.value }))} />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Currency</label>
-                    <Select value={form.currency} onValueChange={v => setForm(f => ({ ...f, currency: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {['ZAR', 'USD', 'KES', 'EUR'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Start Date</label>
-                    <Input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">End Date</label>
-                    <Input type="date" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} />
-                  </div>
-                </div>
-                <Button className="w-full" onClick={handleCreate}>Create</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setWizardOpen(true)}>
+            <Plus className="mr-1 h-4 w-4" /> New Project
+          </Button>
         )}
       </div>
+
+      <ProjectWizard open={wizardOpen} onOpenChange={setWizardOpen} onCreated={loadProjects} />
 
       <div className="flex gap-3">
         <div className="relative flex-1">
@@ -137,9 +91,9 @@ function ProjectsPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Budget</TableHead>
-              <TableHead>Currency</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Start Date</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Photos</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -149,12 +103,18 @@ function ProjectsPage() {
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No projects found</TableCell></TableRow>
             ) : filtered.map(p => (
-              <TableRow key={p.id} className="cursor-pointer hover:bg-accent/50">
+              <TableRow key={p.id}>
                 <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell>{p.budget_amount?.toLocaleString()}</TableCell>
-                <TableCell>{p.currency}</TableCell>
+                <TableCell>{p.currency ?? 'ZAR'} {Number(p.budget_amount ?? p.budget ?? 0).toLocaleString()}</TableCell>
                 <TableCell><Badge className={statusColor[p.status] || ''}>{p.status}</Badge></TableCell>
-                <TableCell>{p.start_date ? new Date(p.start_date).toLocaleDateString() : '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{p.location_description || p.province || '—'}</TableCell>
+                <TableCell>
+                  {photoCounts[p.id] ? (
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <Camera className="h-3.5 w-3.5" /> {photoCounts[p.id]}
+                    </span>
+                  ) : <span className="text-xs text-muted-foreground">—</span>}
+                </TableCell>
                 <TableCell>
                   <Link to="/projects/$id" params={{ id: p.id }}>
                     <Button size="sm" variant="ghost">View</Button>

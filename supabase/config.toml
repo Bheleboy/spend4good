@@ -29,3 +29,7 @@ verify_jwt = false
 
 [functions.send-payment-confirmation]
 verify_jwt = true
+
+[functions.send-project-invite]
+verify_jwt = true
+

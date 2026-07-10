@@ -627,44 +627,129 @@ export type Database = {
           },
         ]
       }
+      project_photos: {
+        Row: {
+          activity: string | null
+          created_at: string
+          file_path: string | null
+          id: string
+          label: string | null
+          message_sid: string | null
+          org_id: string
+          project_id: string
+          source: string
+          storage_url: string | null
+          submitted_by: string | null
+          submitted_by_name: string | null
+          taken_at: string
+        }
+        Insert: {
+          activity?: string | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          label?: string | null
+          message_sid?: string | null
+          org_id: string
+          project_id: string
+          source?: string
+          storage_url?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
+          taken_at?: string
+        }
+        Update: {
+          activity?: string | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          label?: string | null
+          message_sid?: string | null
+          org_id?: string
+          project_id?: string
+          source?: string
+          storage_url?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
+          taken_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_photos_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_photos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_photos_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
+          activity_categories: string[]
           budget: number
+          budget_amount: number | null
           created_at: string
+          currency: string
           description: string | null
           end_date: string | null
           funder_id: string | null
           id: string
+          location_description: string | null
           name: string
           org_id: string
+          province: string | null
           spent: number
           start_date: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          activity_categories?: string[]
           budget?: number
+          budget_amount?: number | null
           created_at?: string
+          currency?: string
           description?: string | null
           end_date?: string | null
           funder_id?: string | null
           id?: string
+          location_description?: string | null
           name: string
           org_id: string
+          province?: string | null
           spent?: number
           start_date?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          activity_categories?: string[]
           budget?: number
+          budget_amount?: number | null
           created_at?: string
+          currency?: string
           description?: string | null
           end_date?: string | null
           funder_id?: string | null
           id?: string
+          location_description?: string | null
           name?: string
           org_id?: string
+          province?: string | null
           spent?: number
           start_date?: string | null
           status?: string
