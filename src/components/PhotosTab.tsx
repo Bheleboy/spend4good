@@ -26,7 +26,7 @@ interface Props {
   onCountChange?: (n: number) => void
 }
 
-const PALETTE = ['bg-primary text-primary-foreground', 'bg-success text-success-foreground', 'bg-warning text-warning-foreground', 'bg-destructive text-destructive-foreground', 'bg-[oklch(0.627_0.265_303.9)] text-primary-foreground', 'bg-[oklch(0.7_0.18_220)] text-primary-foreground', 'bg-[oklch(0.72_0.18_50)] text-primary-foreground', 'bg-[oklch(0.62_0.2_150)] text-primary-foreground']
+const PALETTE = ['bg-primary text-primary-foreground', 'bg-success text-success-foreground', 'bg-[oklch(0.72_0.18_50)] text-primary-foreground', 'bg-destructive text-destructive-foreground', 'bg-[oklch(0.627_0.265_303.9)] text-primary-foreground', 'bg-[oklch(0.7_0.18_220)] text-primary-foreground', 'bg-[oklch(0.72_0.18_50)] text-primary-foreground', 'bg-[oklch(0.62_0.2_150)] text-primary-foreground']
 
 export function PhotosTab({ projectId, projectName, activityCategories, members, onCountChange }: Props) {
   const [photos, setPhotos] = useState<Photo[]>([])
