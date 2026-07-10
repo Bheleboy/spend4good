@@ -11,9 +11,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
-import { ArrowLeft, Plus, Users, DollarSign, MessageCircle, FileBarChart, Trash2 } from 'lucide-react'
+import { ArrowLeft, Camera, Plus, Users, DollarSign, MessageCircle, FileBarChart, Trash2 } from 'lucide-react'
 import { ExpenseCard, type ExpenseRow } from '@/components/ExpenseCard'
 import { ProjectReport } from '@/components/ProjectReport'
+import { PhotosTab } from '@/components/PhotosTab'
 
 export const Route = createFileRoute('/_app/projects/$id')({
   component: ProjectDetailPage,
