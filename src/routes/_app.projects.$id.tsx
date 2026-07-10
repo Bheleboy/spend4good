@@ -96,6 +96,10 @@ function ProjectDetailPage() {
           <TabsTrigger value="overview"><DollarSign className="mr-1 h-4 w-4" />Overview</TabsTrigger>
           <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" />Team</TabsTrigger>
           <TabsTrigger value="expenses"><MessageCircle className="mr-1 h-4 w-4" />Expenses</TabsTrigger>
+          <TabsTrigger value="photos">
+            <Camera className="mr-1 h-4 w-4" />Photos
+            {photoCount > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5">{photoCount}</Badge>}
+          </TabsTrigger>
           <TabsTrigger value="report"><FileBarChart className="mr-1 h-4 w-4" />Report</TabsTrigger>
         </TabsList>
 
