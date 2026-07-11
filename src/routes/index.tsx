@@ -177,7 +177,9 @@ function LandingPage() {
           <Link to="/refund-policy" className="hover:text-[oklch(0.8_0_0)]">Refund Policy</Link>
           <span>·</span>
           <Link to="/waitlist" className="hover:text-[oklch(0.8_0_0)]">Waitlist</Link>
-        </div>
+      <span>·</span>
+<a href="mailto:hello@spend4good.com" className="hover:text-[oklch(0.8_0_0)]">Contact</a>
+  </div>
         © {new Date().getFullYear()} Spend4Good. Built in South Africa. Built for South African nonprofits.
       </footer>
       {/* Zap intentionally imported for future use */}
